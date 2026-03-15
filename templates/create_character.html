@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{% if character %}Редактировать{% else %}Создать{% endif %} персонажа</h2>
+
+<form method="POST" class="character-form">
+    <div class="form-section">
+        <h3>📋 Основная информация</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="name">Имя:</label>
+                <input type="text" id="name" name="name" value="{{ character.name if character else '' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="level">Уровень:</label>
+                <input type="number" id="level" name="level" value="{{ character.level if character else 1 }}" min="1" max="20">
+            </div>
+            
+            <div class="form-group">
+                <label for="ancestry">Происхождение:</label>
+                <input type="text" id="ancestry" name="ancestry" value="{{ character.ancestry if character else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="background">Предыстория:</label>
+                <input type="text" id="background" name="background" value="{{ character.background if character else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="class">Класс:</label>
+                <input type="text" id="class" name="class" value="{{ character.character_class if character else '' }}">
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-section">
+        <h3>💪 Характеристики</h3>
+        <div class="stats-grid">
+            <div class="form-group">
+                <label for="strength">Сила:</label>
+                <input type="number" id="strength" name="strength" value="{{ character.strength if character else 10 }}" min="1" max="30">
+            </div>
+            
+            <div class="form-group">
+                <label for="dexterity">Ловкость:</label>
+                <input type="number" id="dexterity" name="dexterity" value="{{ character.dexterity if character else 10 }}" min="1" max="30">
+            </div>
+            
+            <div class="form-group">
+                <label for="constitution">Телосложение:</label>
+                <input type="number" id="constitution" name="constitution" value="{{ character.constitution if character else 10 }}" min="1" max="30">
+            </div>
+            
+            <div class="form-group">
+                <label for="intelligence">Интеллект:</label>
+                <input type="number" id="intelligence" name="intelligence" value="{{ character.intelligence if character else 10 }}" min="1" max="30">
+            </div>
+            
+            <div class="form-group">
+                <label for="wisdom">Мудрость:</label>
+                <input type="number" id="wisdom" name="wisdom" value="{{ character.wisdom if character else 10 }}" min="1" max="30">
+            </div>
+            
+            <div class="form-group">
+                <label for="charisma">Харизма:</label>
+                <input type="number" id="charisma" name="charisma" value="{{ character.charisma if character else 10 }}" min="1" max="30">
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-section">
+        <h3>⚔️ Боевые параметры</h3>
+        <div class="combat-grid">
+            <div class="form-group">
+                <label for="max_hp">Макс. ХП:</label>
+                <input type="number" id="max_hp" name="max_hp" value="{{ character.max_hp if character else 10 }}" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="current_hp">Тек. ХП:</label>
+                <input type="number" id="current_hp" name="current_hp" value="{{ character.current_hp if character else 10 }}" min="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="armor_class">КБ:</label>
+                <input type="number" id="armor_class" name="armor_class" value="{{ character.armor_class if character else 10 }}" min="0">
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-section">
+        <h3>📚 Навыки</h3>
+        <div class="skills-grid">
+            {% set skills = [
+                ('acrobatics', 'Акробатика'), ('arcana', 'Аркана'), ('athletics', 'Атлетика'),
+                ('crafting', 'Ремесло'), ('deception', 'Обман'), ('diplomacy', 'Дипломатия'),
+                ('intimidation', 'Запугивание'), ('medicine', 'Медицина'), ('nature', 'Природа'),
+                ('occultism', 'Оккультизм'), ('performance', 'Выступление'), ('religion', 'Религия'),
+                ('society', 'Общество'), ('stealth', 'Скрытность'), ('survival', 'Выживание'),
+                ('thievery', 'Воровство')
+            ] %}
+            
+            {% for skill_id, skill_name in skills %}
+            <div class="form-group">
+                <label for="{{ skill_id }}">{{ skill_name }}:</label>
+                <select id="{{ skill_id }}" name="{{ skill_id }}">
+                    <option value="0" {% if character and attribute(character, skill_id) == 0 %}selected{% endif %}>Необучен</option>
+                    <option value="1" {% if character and attribute(character, skill_id) == 1 %}selected{% endif %}>Обучен (+2)</option>
+                    <option value="2" {% if character and attribute(character, skill_id) == 2 %}selected{% endif %}>Эксперт (+4)</option>
+                    <option value="3" {% if character and attribute(character, skill_id) == 3 %}selected{% endif %}>Мастер (+6)</option>
+                    <option value="4" {% if character and attribute(character, skill_id) == 4 %}selected{% endif %}>Легендарный (+8)</option>
+                </select>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="form-actions">
+        <button type="submit" class="button">💾 Сохранить</button>
+        <a href="{{ url_for('index') }}" class="button secondary">↩️ Отмена</a>
+    </div>
+</form>
+{% endblock %}

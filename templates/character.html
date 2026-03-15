@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="character-header">
+    <h2>{{ character.name }}</h2>
+    <div class="header-actions">
+        <a href="{{ url_for('edit_character', id=character.id) }}" class="button">✏️ Редактировать</a>
+        <a href="{{ url_for('index') }}" class="button secondary">↩️ К списку</a>
+    </div>
+</div>
+
+<div class="character-sheet">
+    <div class="info-block">
+        <h3>📋 Основная информация</h3>
+        <table class="info-table">
+            <tr><th>Уровень:</th><td>{{ character.level }}</td></tr>
+            <tr><th>Происхождение:</th><td>{{ character.ancestry or '-' }}</td></tr>
+            <tr><th>Предыстория:</th><td>{{ character.background or '-' }}</td></tr>
+            <tr><th>Класс:</th><td>{{ character.character_class or '-' }}</td></tr>
+        </table>
+    </div>
+
+    <div class="stats-block">
+        <h3>💪 Характеристики</h3>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Характеристика</th>
+                    <th>Значение</th>
+                    <th>Модификатор</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Сила</td><td>{{ character.strength }}</td><td class="modifier">{{ character.strength_mod }}</td></tr>
+                <tr><td>Ловкость</td><td>{{ character.dexterity }}</td><td class="modifier">{{ character.dexterity_mod }}</td></tr>
+                <tr><td>Телосложение</td><td>{{ character.constitution }}</td><td class="modifier">{{ character.constitution_mod }}</td></tr>
+                <tr><td>Интеллект</td><td>{{ character.intelligence }}</td><td class="modifier">{{ character.intelligence_mod }}</td></tr>
+                <tr><td>Мудрость</td><td>{{ character.wisdom }}</td><td class="modifier">{{ character.wisdom_mod }}</td></tr>
+                <tr><td>Харизма</td><td>{{ character.charisma }}</td><td class="modifier">{{ character.charisma_mod }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="combat-block">
+        <h3>⚔️ Боевые параметры</h3>
+        <table class="combat-table">
+            <tr><th>Максимальные ХП:</th><td>{{ character.max_hp }}</td></tr>
+            <tr><th>Текущие ХП:</th><td>{{ character.current_hp }}</td></tr>
+            <tr><th>Класс Брони:</th><td>{{ character.armor_class }}</td></tr>
+        </table>
+    </div>
+
+    <div class="skills-block">
+        <h3>📚 Навыки</h3>
+        <table class="skills-table">
+            <thead>
+                <tr>
+                    <th>Навык</th>
+                    <th>Уровень</th>
+                    <th>Бонус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set skills = [
+                    ('acrobatics', 'Акробатика', character.dexterity_mod),
+                    ('arcana', 'Аркана', character.intelligence_mod),
+                    ('athletics', 'Атлетика', character.strength_mod),
+                    ('crafting', 'Ремесло', character.intelligence_mod),
+                    ('deception', 'Обман', character.charisma_mod),
+                    ('diplomacy', 'Дипломатия', character.charisma_mod),
+                    ('intimidation', 'Запугивание', character.charisma_mod),
+                    ('medicine', 'Медицина', character.wisdom_mod),
+                    ('nature', 'Природа', character.wisdom_mod),
+                    ('occultism', 'Оккультизм', character.intelligence_mod),
+                    ('performance', 'Выступление', character.charisma_mod),
+                    ('religion', 'Религия', character.wisdom_mod),
+                    ('society', 'Общество', character.intelligence_mod),
+                    ('stealth', 'Скрытность', character.dexterity_mod),
+                    ('survival', 'Выживание', character.wisdom_mod),
+                    ('thievery', 'Воровство', character.dexterity_mod)
+                ] %}
+                
+                {% for skill_id, skill_name, mod in skills %}
+                <tr>
+                    <td>{{ skill_name }}</td>
+                    <td>{{ character.get_proficiency_name(attribute(character, skill_id)) }}</td>
+                    <td class="bonus">{{ character.get_skill_bonus(attribute(character, skill_id), mod) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
