@@ -7,6 +7,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+with app.app_context():
+    db.create_all()
+
 @app.context_processor
 def utility_processor():
     def get_attribute(obj, attr):
