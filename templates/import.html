@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h2>Импорт персонажа</h2>
+</div>
+<div class="card">
+    <form method="POST" enctype="multipart/form-data" class="simple-form">
+        <p>Выберите файл <strong>.json</strong>, экспортированный из этого приложения:</p>
+        <div class="form-group">
+            <input type="file" name="json_file" accept=".json" required>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">📥 Импортировать</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

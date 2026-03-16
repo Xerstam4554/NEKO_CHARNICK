@@ -1,94 +1,303 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="character-header">
-    <h2>{{ character.name }}</h2>
-    <div class="header-actions">
-        <a href="{{ url_for('edit_character', id=character.id) }}" class="button">✏️ Редактировать</a>
-        <a href="{{ url_for('index') }}" class="button secondary">↩️ К списку</a>
+
+{# ── Шапка персонажа ───────────────────────────────────────────────────── #}
+<div class="char-view-header">
+    <div class="char-view-avatar">
+        {% if character.avatar %}
+        <img src="{{ url_for('static', filename='uploads/' + character.avatar) }}" alt="{{ character.name }}">
+        {% else %}
+        <div class="avatar-placeholder large">{{ character.name[0] }}</div>
+        {% endif %}
+    </div>
+    <div class="char-view-title">
+        <h2>{{ character.name }}</h2>
+        <div class="char-view-meta">
+            {% if character.character_class %}
+            <span class="badge">{{ character.character_class }}</span>
+            {% endif %}
+            <span class="badge badge-level">Уровень {{ character.level }}</span>
+            {% if character.ancestry %}<span class="badge badge-info">{{ character.ancestry }}</span>{% endif %}
+            {% if character.background %}<span class="badge badge-info">{{ character.background }}</span>{% endif %}
+        </div>
+        {% if character.experience is defined %}
+        <div class="char-xp">🏅 Опыт: {{ character.experience }} XP</div>
+        {% endif %}
+        {% if character.languages %}
+        <div class="char-langs">🗣 Языки: {{ character.languages }}</div>
+        {% endif %}
+    </div>
+    <div class="char-view-actions">
+        <a href="{{ url_for('edit_character', id=character.id) }}" class="btn btn-primary">✏️ Редактировать</a>
+        <a href="{{ url_for('export_character', id=character.id) }}" class="btn btn-secondary">💾 Экспорт</a>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">↩ Список</a>
     </div>
 </div>
 
-<div class="character-sheet">
-    <div class="info-block">
-        <h3>📋 Основная информация</h3>
-        <table class="info-table">
-            <tr><th>Уровень:</th><td>{{ character.level }}</td></tr>
-            <tr><th>Происхождение:</th><td>{{ character.ancestry or '-' }}</td></tr>
-            <tr><th>Предыстория:</th><td>{{ character.background or '-' }}</td></tr>
-            <tr><th>Класс:</th><td>{{ character.character_class or '-' }}</td></tr>
-        </table>
+{# ── HP-блок ──────────────────────────────────────────────────────────── #}
+<div class="card hp-card" id="hp-card" data-id="{{ character.id }}">
+    <h3 class="card-title">❤️ Здоровье</h3>
+    <div class="hp-row">
+        <button class="btn btn-danger hp-btn" onclick="changeHP({{ character.id }}, -1)">−1</button>
+        <button class="btn btn-danger hp-btn" onclick="changeHP({{ character.id }}, -5)">−5</button>
+        <div class="hp-display">
+            <span id="current-hp">{{ character.current_hp }}</span>
+            <span class="hp-sep">/</span>
+            <span>{{ character.max_hp }}</span>
+        </div>
+        <button class="btn btn-success hp-btn" onclick="changeHP({{ character.id }}, +5)">+5</button>
+        <button class="btn btn-success hp-btn" onclick="changeHP({{ character.id }}, +1)">+1</button>
     </div>
-
-    <div class="stats-block">
-        <h3>💪 Характеристики</h3>
-        <table class="stats-table">
-            <thead>
-                <tr>
-                    <th>Характеристика</th>
-                    <th>Значение</th>
-                    <th>Модификатор</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>Сила</td><td>{{ character.strength }}</td><td class="modifier">{{ character.strength_mod }}</td></tr>
-                <tr><td>Ловкость</td><td>{{ character.dexterity }}</td><td class="modifier">{{ character.dexterity_mod }}</td></tr>
-                <tr><td>Телосложение</td><td>{{ character.constitution }}</td><td class="modifier">{{ character.constitution_mod }}</td></tr>
-                <tr><td>Интеллект</td><td>{{ character.intelligence }}</td><td class="modifier">{{ character.intelligence_mod }}</td></tr>
-                <tr><td>Мудрость</td><td>{{ character.wisdom }}</td><td class="modifier">{{ character.wisdom_mod }}</td></tr>
-                <tr><td>Харизма</td><td>{{ character.charisma }}</td><td class="modifier">{{ character.charisma_mod }}</td></tr>
-            </tbody>
-        </table>
+    <div class="hp-bar-wrap">
+        <div class="hp-bar" id="hp-bar"
+             style="width: {{ [(character.current_hp / character.max_hp * 100)|int, 100]|min }}%"></div>
     </div>
-
-    <div class="combat-block">
-        <h3>⚔️ Боевые параметры</h3>
-        <table class="combat-table">
-            <tr><th>Максимальные ХП:</th><td>{{ character.max_hp }}</td></tr>
-            <tr><th>Текущие ХП:</th><td>{{ character.current_hp }}</td></tr>
-            <tr><th>Класс Брони:</th><td>{{ character.armor_class }}</td></tr>
-        </table>
-    </div>
-
-    <div class="skills-block">
-        <h3>📚 Навыки</h3>
-        <table class="skills-table">
-            <thead>
-                <tr>
-                    <th>Навык</th>
-                    <th>Уровень</th>
-                    <th>Бонус</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% set skills = [
-                    ('acrobatics', 'Акробатика', character.dexterity_mod),
-                    ('arcana', 'Аркана', character.intelligence_mod),
-                    ('athletics', 'Атлетика', character.strength_mod),
-                    ('crafting', 'Ремесло', character.intelligence_mod),
-                    ('deception', 'Обман', character.charisma_mod),
-                    ('diplomacy', 'Дипломатия', character.charisma_mod),
-                    ('intimidation', 'Запугивание', character.charisma_mod),
-                    ('medicine', 'Медицина', character.wisdom_mod),
-                    ('nature', 'Природа', character.wisdom_mod),
-                    ('occultism', 'Оккультизм', character.intelligence_mod),
-                    ('performance', 'Выступление', character.charisma_mod),
-                    ('religion', 'Религия', character.wisdom_mod),
-                    ('society', 'Общество', character.intelligence_mod),
-                    ('stealth', 'Скрытность', character.dexterity_mod),
-                    ('survival', 'Выживание', character.wisdom_mod),
-                    ('thievery', 'Воровство', character.dexterity_mod)
-                ] %}
-                
-                {% for skill_id, skill_name, mod in skills %}
-                <tr>
-                    <td>{{ skill_name }}</td>
-                    <td>{{ character.get_proficiency_name(attribute(character, skill_id)) }}</td>
-                    <td class="bonus">{{ character.get_skill_bonus(attribute(character, skill_id), mod) }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="combat-stats">
+        <div class="combat-stat">
+            <span class="combat-stat-label">КБ</span>
+            <span class="combat-stat-value">{{ character.armor_class }}</span>
+        </div>
+        <div class="combat-stat">
+            <span class="combat-stat-label">Скорость</span>
+            <span class="combat-stat-value">{{ character.speed }} фут.</span>
+        </div>
+        <div class="combat-stat">
+            <span class="combat-stat-label">Восприятие</span>
+            <span class="combat-stat-value">{{ fmt_mod(character.perception_bonus) }}</span>
+            <span class="combat-stat-prof">({{ character.get_proficiency_name(character.perception_prof) }})</span>
+        </div>
     </div>
 </div>
+
+{# ── Характеристики ───────────────────────────────────────────────────── #}
+<div class="card">
+    <h3 class="card-title">💪 Характеристики</h3>
+    <div class="stats-grid">
+        {% set stat_list = [
+            ('strength',    'СИЛ', 'Сила'),
+            ('dexterity',   'ЛОВ', 'Ловкость'),
+            ('constitution','ТЕЛ', 'Телосложение'),
+            ('intelligence','ИНТ', 'Интеллект'),
+            ('wisdom',      'МДР', 'Мудрость'),
+            ('charisma',    'ХАР', 'Харизма'),
+        ] %}
+        {% for attr, abbr, label in stat_list %}
+        {% set val = attribute(character, attr) %}
+        <div class="stat-display">
+            <div class="stat-abbr">{{ abbr }}</div>
+            <div class="stat-value">{{ fmt_mod(val) }}</div>
+            <div class="stat-label">{{ label }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{# ── Испытания ────────────────────────────────────────────────────────── #}
+<div class="card">
+    <h3 class="card-title">🛡 Испытания</h3>
+    <div class="saves-grid">
+        <div class="save-box">
+            <div class="save-value">{{ fmt_mod(character.fortitude_bonus) }}</div>
+            <div class="save-name">Стойкость</div>
+            <div class="save-prof">({{ character.get_proficiency_name(character.fortitude_prof) }}, Тел)</div>
+        </div>
+        <div class="save-box">
+            <div class="save-value">{{ fmt_mod(character.reflex_bonus) }}</div>
+            <div class="save-name">Реакция</div>
+            <div class="save-prof">({{ character.get_proficiency_name(character.reflex_prof) }}, Лов)</div>
+        </div>
+        <div class="save-box">
+            <div class="save-value">{{ fmt_mod(character.will_bonus) }}</div>
+            <div class="save-name">Воля</div>
+            <div class="save-prof">({{ character.get_proficiency_name(character.will_prof) }}, Мдр)</div>
+        </div>
+    </div>
+</div>
+
+{# ── Классовая сложность ──────────────────────────────────────────────── #}
+{% if character.class_dc_prof > 0 %}
+<div class="card">
+    <h3 class="card-title">🎯 Классовая сложность</h3>
+    <div class="saves-grid">
+        <div class="save-box">
+            <div class="save-value">{{ character.class_dc }}</div>
+            <div class="save-name">КС класса</div>
+            <div class="save-prof">({{ character.get_proficiency_name(character.class_dc_prof) }})</div>
+        </div>
+        <div class="save-box">
+            <div class="save-value">{{ fmt_mod(character.class_spell_attack) }}</div>
+            <div class="save-name">Атака заклинаниями</div>
+            <div class="save-prof">({{ ability_names.get(character.class_dc_ability, '') }})</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── Навыки ───────────────────────────────────────────────────────────── #}
+<div class="card">
+    <h3 class="card-title">📚 Навыки</h3>
+    <table class="skills-table">
+        <thead>
+            <tr><th>Навык</th><th>Хар-ка</th><th>Владение</th><th>Бонус</th></tr>
+        </thead>
+        <tbody>
+            {% set skills = [
+                ('acrobatics',   'Акробатика',   character.dexterity),
+                ('arcana',       'Аркана',        character.intelligence),
+                ('athletics',    'Атлетика',      character.strength),
+                ('crafting',     'Ремесло',       character.intelligence),
+                ('deception',    'Обман',         character.charisma),
+                ('diplomacy',    'Дипломатия',    character.charisma),
+                ('intimidation', 'Запугивание',   character.charisma),
+                ('medicine',     'Медицина',      character.wisdom),
+                ('nature',       'Природа',       character.wisdom),
+                ('occultism',    'Оккультизм',    character.intelligence),
+                ('performance',  'Выступление',   character.charisma),
+                ('religion',     'Религия',       character.wisdom),
+                ('society',      'Общество',      character.intelligence),
+                ('stealth',      'Скрытность',    character.dexterity),
+                ('survival',     'Выживание',     character.wisdom),
+                ('thievery',     'Воровство',     character.dexterity),
+            ] %}
+            {% for skill_id, skill_name, mod in skills %}
+            {% set prof = attribute(character, skill_id) %}
+            {% set bonus = character.get_skill_bonus(prof, mod) %}
+            <tr class="{% if prof > 0 %}trained{% endif %}">
+                <td>{{ skill_name }}</td>
+                <td class="mod-col">{{ fmt_mod(mod) }}</td>
+                <td><span class="prof-badge prof-{{ prof }}">{{ character.get_proficiency_name(prof) }}</span></td>
+                <td class="bonus-col">{{ fmt_mod(bonus) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# ── Черты ────────────────────────────────────────────────────────────── #}
+{% set feat_groups = [
+    ('general',  '🌟 Общие черты'),
+    ('skill',    '📖 Черты навыков'),
+    ('ancestry', '🌿 Черты происхождения'),
+    ('class',    '⚡ Классовые черты'),
+] %}
+{% set all_feats = character.feats %}
+{% if all_feats %}
+<div class="card">
+    <h3 class="card-title">🌟 Черты</h3>
+    {% for feat_type, feat_label in feat_groups %}
+    {% set group = all_feats | selectattr('type', 'equalto', feat_type) | list %}
+    {% if group %}
+    <h4 class="sub-title">{{ feat_label }}</h4>
+    <div class="feat-list">
+        {% for feat in group %}
+        <div class="feat-item">
+            <strong>{{ feat.name }}</strong>
+            {% if feat.level %}<span class="badge badge-sm">{{ feat.level }} ур.</span>{% endif %}
+            {% if feat.description %}<p>{{ feat.description }}</p>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+{# ── Классовые умения ─────────────────────────────────────────────────── #}
+{% if character.class_abilities %}
+<div class="card">
+    <h3 class="card-title">⚡ Классовые умения</h3>
+    <div class="feat-list">
+        {% for ability in character.class_abilities %}
+        <div class="feat-item">
+            <strong>{{ ability.name }}</strong>
+            {% if ability.level %}<span class="badge badge-sm">{{ ability.level }} ур.</span>{% endif %}
+            {% if ability.description %}<p>{{ ability.description }}</p>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# ── Заклинания ───────────────────────────────────────────────────────── #}
+{% set sp = character.spells %}
+{% if sp and sp.get('is_caster') %}
+<div class="card">
+    <h3 class="card-title">✨ Заклинания</h3>
+    <div class="spell-meta">
+        <span class="badge">{{ traditions.get(sp.get('tradition', ''), sp.get('tradition', '')) }}</span>
+        <span class="badge badge-info">{{ 'Подготовленные' if sp.get('casting_type') == 'prepared' else ('Спонтанные' if sp.get('casting_type') == 'spontaneous' else 'Фокусные') }}</span>
+        <span>Атака заклинаниями: <strong>{{ fmt_mod(character.class_spell_attack) }}</strong></span>
+        <span>КС заклинаний: <strong>{{ character.class_dc }}</strong></span>
+    </div>
+
+    {% if sp.get('slots') %}
+    <h4 class="sub-title">Слоты</h4>
+    <div class="slots-display">
+        {% for rank in range(1, 11) %}
+        {% if sp.slots.get(rank|string, 0) > 0 %}
+        <div class="slot-box">
+            <div class="slot-rank">{{ rank }}</div>
+            <div class="slot-count">×{{ sp.slots[rank|string] }}</div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if sp.get('cantrips') %}
+    <h4 class="sub-title">Заговоры</h4>
+    <div class="spell-list">
+        {% for s in sp.cantrips %}
+        <div class="spell-item">
+            <strong>{{ s.name }}</strong>
+            {% if s.description %}<span class="spell-desc">— {{ s.description }}</span>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if sp.get('spells') %}
+    <h4 class="sub-title">Заклинания</h4>
+    <div class="spell-list">
+        {% for s in sp.spells %}
+        <div class="spell-item">
+            <span class="spell-rank">{{ s.rank }} ранг</span>
+            <strong>{{ s.name }}</strong>
+            {% if s.description %}<span class="spell-desc">— {{ s.description }}</span>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{# ── Инвентарь ────────────────────────────────────────────────────────── #}
+{% if character.inventory %}
+<div class="card">
+    <h3 class="card-title">🎒 Инвентарь</h3>
+    <table class="skills-table">
+        <thead>
+            <tr><th>Предмет</th><th>Кол-во</th><th>Вес</th><th>Цена</th><th>Описание</th></tr>
+        </thead>
+        <tbody>
+            {% for item in character.inventory %}
+            <tr>
+                <td>
+                    {% if item.get('equipped') %}<span title="Экипировано">🔵</span>{% endif %}
+                    {{ item.name }}
+                </td>
+                <td>{{ item.get('quantity', 1) }}</td>
+                <td>{{ item.get('weight', '—') }}</td>
+                <td>{{ item.get('price', '—') }}</td>
+                <td>{{ item.get('description', '') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<script>
+document.getElementById('hp-card').dataset.maxHp = {{ character.max_hp }};
+</script>
 {% endblock %}

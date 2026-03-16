@@ -1,40 +1,51 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Мои персонажи</h2>
-
-<a href="{{ url_for('create_character') }}" class="button">➕ Создать нового персонажа</a>
+<div class="page-header">
+    <h2>Мои персонажи</h2>
+    <a href="{{ url_for('create_character') }}" class="btn btn-primary">➕ Создать персонажа</a>
+</div>
 
 {% if characters %}
-<table>
-    <thead>
-        <tr>
-            <th>Имя</th>
-            <th>Уровень</th>
-            <th>Происхождение</th>
-            <th>Класс</th>
-            <th>Действия</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for char in characters %}
-        <tr>
-            <td><strong>{{ char.name }}</strong></td>
-            <td>{{ char.level }}</td>
-            <td>{{ char.ancestry or '-' }}</td>
-            <td>{{ char.character_class or '-' }}</td>
-            <td class="actions">
-                <a href="{{ url_for('view_character', id=char.id) }}" class="button small">👁️</a>
-                <a href="{{ url_for('edit_character', id=char.id) }}" class="button small">✏️</a>
-                <a href="{{ url_for('delete_character', id=char.id) }}" class="button small delete" onclick="return confirm('Точно удалить персонажа?')">🗑️</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="char-grid">
+    {% for char in characters %}
+    <div class="char-card">
+        <div class="char-card-avatar">
+            {% if char.avatar %}
+            <img src="{{ url_for('static', filename='uploads/' + char.avatar) }}" alt="{{ char.name }}">
+            {% else %}
+            <div class="char-card-avatar-placeholder">{{ char.name[0] }}</div>
+            {% endif %}
+        </div>
+        <div class="char-card-body">
+            <h3>{{ char.name }}</h3>
+            <div class="char-card-meta">
+                <span class="badge">{{ char.character_class or 'Без класса' }}</span>
+                <span class="badge badge-level">{{ char.level }} ур.</span>
+            </div>
+            <div class="char-card-meta">
+                {% if char.ancestry %}<span>{{ char.ancestry }}</span>{% endif %}
+                {% if char.background %}<span>· {{ char.background }}</span>{% endif %}
+            </div>
+            <div class="char-card-hp">
+                ❤️ {{ char.current_hp }} / {{ char.max_hp }}
+            </div>
+        </div>
+        <div class="char-card-actions">
+            <a href="{{ url_for('view_character', id=char.id) }}" class="btn btn-sm">👁 Просмотр</a>
+            <a href="{{ url_for('edit_character', id=char.id) }}" class="btn btn-sm btn-secondary">✏️ Изменить</a>
+            <a href="{{ url_for('export_character', id=char.id) }}" class="btn btn-sm btn-secondary">💾 JSON</a>
+            <a href="{{ url_for('delete_character', id=char.id) }}" class="btn btn-sm btn-danger"
+               onclick="return confirm('Удалить персонажа {{ char.name }}?')">🗑</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 {% else %}
 <div class="empty-state">
-    <p>У вас пока нет персонажей. Создайте первого!</p>
+    <div class="empty-icon">⚔️</div>
+    <p>Персонажей пока нет. Создайте первого героя!</p>
+    <a href="{{ url_for('create_character') }}" class="btn btn-primary">Создать персонажа</a>
 </div>
 {% endif %}
 {% endblock %}

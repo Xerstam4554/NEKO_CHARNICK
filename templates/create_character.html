@@ -1,124 +1,340 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>{% if character %}Редактировать{% else %}Создать{% endif %} персонажа</h2>
 
-<form method="POST" class="character-form">
-    <div class="form-section">
-        <h3>📋 Основная информация</h3>
-        <div class="form-grid">
+<div class="page-header">
+    <h2>{% if character %}Редактирование: {{ character.name }}{% else %}Новый персонаж{% endif %}</h2>
+    {% if character %}
+    <a href="{{ url_for('view_character', id=character.id) }}" class="btn btn-secondary">↩ Отмена</a>
+    {% else %}
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">↩ К списку</a>
+    {% endif %}
+</div>
+
+<form method="POST" enctype="multipart/form-data" id="char-form">
+
+    {# ── Основная информация ──────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">📋 Основная информация</h3>
+        <div class="form-grid-3">
             <div class="form-group">
-                <label for="name">Имя:</label>
-                <input type="text" id="name" name="name" value="{{ character.name if character else '' }}" required>
+                <label>Имя персонажа *</label>
+                <input type="text" name="name" value="{{ character.name if character else '' }}" required>
             </div>
-            
             <div class="form-group">
-                <label for="level">Уровень:</label>
-                <input type="number" id="level" name="level" value="{{ character.level if character else 1 }}" min="1" max="20">
+                <label>Класс</label>
+                <input type="text" name="character_class" id="class-input"
+                       value="{{ character.character_class if character else '' }}"
+                       list="class-list" autocomplete="off">
+                <datalist id="class-list">
+                    {% for cls in classes %}
+                    <option value="{{ cls }}">
+                    {% endfor %}
+                </datalist>
             </div>
-            
             <div class="form-group">
-                <label for="ancestry">Происхождение:</label>
-                <input type="text" id="ancestry" name="ancestry" value="{{ character.ancestry if character else '' }}">
+                <label>Уровень</label>
+                <input type="number" name="level" value="{{ character.level if character else 1 }}" min="1" max="20">
             </div>
-            
             <div class="form-group">
-                <label for="background">Предыстория:</label>
-                <input type="text" id="background" name="background" value="{{ character.background if character else '' }}">
+                <label>Происхождение</label>
+                <input type="text" name="ancestry" value="{{ character.ancestry if character else '' }}">
             </div>
-            
             <div class="form-group">
-                <label for="class">Класс:</label>
-                <input type="text" id="class" name="class" value="{{ character.character_class if character else '' }}">
+                <label>Предыстория</label>
+                <input type="text" name="background" value="{{ character.background if character else '' }}">
+            </div>
+            <div class="form-group">
+                <label>Опыт (XP)</label>
+                <input type="number" name="experience" value="{{ character.experience if character else 0 }}" min="0">
+            </div>
+            <div class="form-group full-width">
+                <label>Языки <span class="hint">(через запятую)</span></label>
+                <input type="text" name="languages" placeholder="Общий, Эльфийский, Гномий…"
+                       value="{{ character.languages if character else '' }}">
             </div>
         </div>
     </div>
-    
-    <div class="form-section">
-        <h3>💪 Характеристики</h3>
+
+    {# ── Аватар ───────────────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">🖼 Аватар персонажа</h3>
+        <div class="avatar-upload-row">
+            <div class="avatar-preview" id="avatar-preview">
+                {% if character and character.avatar %}
+                <img id="avatar-img" src="{{ url_for('static', filename='uploads/' + character.avatar) }}" alt="Аватар">
+                {% else %}
+                <div class="avatar-placeholder" id="avatar-img">Нет изображения</div>
+                {% endif %}
+            </div>
+            <div>
+                <input type="file" name="avatar" id="avatar-input" accept="image/*" onchange="previewAvatar(this)">
+                <p class="hint">PNG, JPG, WEBP — до 4 МБ. Рекомендуемый размер: 300×300 пикселей.</p>
+            </div>
+        </div>
+    </div>
+
+    {# ── Характеристики ───────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">💪 Характеристики <span class="hint">(модификаторы: −5 … +10)</span></h3>
         <div class="stats-grid">
-            <div class="form-group">
-                <label for="strength">Сила:</label>
-                <input type="number" id="strength" name="strength" value="{{ character.strength if character else 10 }}" min="1" max="30">
+            {% set attrs = [
+                ('strength',    'Сила'),
+                ('dexterity',   'Ловкость'),
+                ('constitution','Телосложение'),
+                ('intelligence','Интеллект'),
+                ('wisdom',      'Мудрость'),
+                ('charisma',    'Харизма'),
+            ] %}
+            {% for attr, label in attrs %}
+            <div class="stat-box">
+                <label>{{ label }}</label>
+                <input type="number" name="{{ attr }}"
+                       value="{{ attribute(character, attr) if character else 0 }}"
+                       min="-5" max="10" class="stat-input">
             </div>
-            
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ── Боевые параметры ─────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">⚔️ Боевые параметры</h3>
+        <div class="form-grid-4">
             <div class="form-group">
-                <label for="dexterity">Ловкость:</label>
-                <input type="number" id="dexterity" name="dexterity" value="{{ character.dexterity if character else 10 }}" min="1" max="30">
+                <label>Макс. ХП</label>
+                <input type="number" name="max_hp" value="{{ character.max_hp if character else 10 }}" min="1">
             </div>
-            
             <div class="form-group">
-                <label for="constitution">Телосложение:</label>
-                <input type="number" id="constitution" name="constitution" value="{{ character.constitution if character else 10 }}" min="1" max="30">
+                <label>Тек. ХП</label>
+                <input type="number" name="current_hp" value="{{ character.current_hp if character else 10 }}" min="0">
             </div>
-            
             <div class="form-group">
-                <label for="intelligence">Интеллект:</label>
-                <input type="number" id="intelligence" name="intelligence" value="{{ character.intelligence if character else 10 }}" min="1" max="30">
+                <label>Класс Брони (КБ)</label>
+                <input type="number" name="armor_class" value="{{ character.armor_class if character else 10 }}" min="0">
             </div>
-            
             <div class="form-group">
-                <label for="wisdom">Мудрость:</label>
-                <input type="number" id="wisdom" name="wisdom" value="{{ character.wisdom if character else 10 }}" min="1" max="30">
-            </div>
-            
-            <div class="form-group">
-                <label for="charisma">Харизма:</label>
-                <input type="number" id="charisma" name="charisma" value="{{ character.charisma if character else 10 }}" min="1" max="30">
+                <label>Скорость (фут.)</label>
+                <input type="number" name="speed" value="{{ character.speed if character else 25 }}" min="0" step="5">
             </div>
         </div>
     </div>
-    
-    <div class="form-section">
-        <h3>⚔️ Боевые параметры</h3>
-        <div class="combat-grid">
+
+    {# ── Испытания ────────────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">🛡 Испытания</h3>
+        <p class="hint section-hint">Бонус = Модификатор + Уровень + Бонус владения (если обучен)</p>
+        <div class="form-grid-3">
+            {% set saves = [
+                ('fortitude_prof', 'Стойкость', 'Телосложение'),
+                ('reflex_prof',    'Реакция',   'Ловкость'),
+                ('will_prof',      'Воля',      'Мудрость'),
+            ] %}
+            {% for field, label, ability in saves %}
             <div class="form-group">
-                <label for="max_hp">Макс. ХП:</label>
-                <input type="number" id="max_hp" name="max_hp" value="{{ character.max_hp if character else 10 }}" min="1">
+                <label>{{ label }} <span class="hint">({{ ability }})</span></label>
+                <select name="{{ field }}">
+                    {% for val, name in proficiency_names.items() %}
+                    <option value="{{ val }}"
+                        {% if character and attribute(character, field) == val %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
-            
+            {% endfor %}
+        </div>
+
+        <h4 class="sub-title">Восприятие <span class="hint">(Мудрость)</span></h4>
+        <div class="form-grid-4">
             <div class="form-group">
-                <label for="current_hp">Тек. ХП:</label>
-                <input type="number" id="current_hp" name="current_hp" value="{{ character.current_hp if character else 10 }}" min="0">
-            </div>
-            
-            <div class="form-group">
-                <label for="armor_class">КБ:</label>
-                <input type="number" id="armor_class" name="armor_class" value="{{ character.armor_class if character else 10 }}" min="0">
+                <label>Владение восприятием</label>
+                <select name="perception_prof">
+                    {% for val, name in proficiency_names.items() %}
+                    <option value="{{ val }}"
+                        {% if character and character.perception_prof == val %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
     </div>
-    
-    <div class="form-section">
-        <h3>📚 Навыки</h3>
+
+    {# ── Навыки ───────────────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">📚 Навыки</h3>
         <div class="skills-grid">
             {% set skills = [
-                ('acrobatics', 'Акробатика'), ('arcana', 'Аркана'), ('athletics', 'Атлетика'),
-                ('crafting', 'Ремесло'), ('deception', 'Обман'), ('diplomacy', 'Дипломатия'),
-                ('intimidation', 'Запугивание'), ('medicine', 'Медицина'), ('nature', 'Природа'),
-                ('occultism', 'Оккультизм'), ('performance', 'Выступление'), ('religion', 'Религия'),
-                ('society', 'Общество'), ('stealth', 'Скрытность'), ('survival', 'Выживание'),
-                ('thievery', 'Воровство')
+                ('acrobatics',   'Акробатика',   'Ловкость'),
+                ('arcana',       'Аркана',        'Интеллект'),
+                ('athletics',    'Атлетика',      'Сила'),
+                ('crafting',     'Ремесло',       'Интеллект'),
+                ('deception',    'Обман',         'Харизма'),
+                ('diplomacy',    'Дипломатия',    'Харизма'),
+                ('intimidation', 'Запугивание',   'Харизма'),
+                ('medicine',     'Медицина',      'Мудрость'),
+                ('nature',       'Природа',       'Мудрость'),
+                ('occultism',    'Оккультизм',    'Интеллект'),
+                ('performance',  'Выступление',   'Харизма'),
+                ('religion',     'Религия',       'Мудрость'),
+                ('society',      'Общество',      'Интеллект'),
+                ('stealth',      'Скрытность',    'Ловкость'),
+                ('survival',     'Выживание',     'Мудрость'),
+                ('thievery',     'Воровство',     'Ловкость'),
             ] %}
-            
-            {% for skill_id, skill_name in skills %}
-            <div class="form-group">
-                <label for="{{ skill_id }}">{{ skill_name }}:</label>
-                <select id="{{ skill_id }}" name="{{ skill_id }}">
-                    <option value="0" {% if character and attribute(character, skill_id) == 0 %}selected{% endif %}>Необучен</option>
-                    <option value="1" {% if character and attribute(character, skill_id) == 1 %}selected{% endif %}>Обучен (+2)</option>
-                    <option value="2" {% if character and attribute(character, skill_id) == 2 %}selected{% endif %}>Эксперт (+4)</option>
-                    <option value="3" {% if character and attribute(character, skill_id) == 3 %}selected{% endif %}>Мастер (+6)</option>
-                    <option value="4" {% if character and attribute(character, skill_id) == 4 %}selected{% endif %}>Легендарный (+8)</option>
+            {% for skill_id, skill_name, ability in skills %}
+            <div class="skill-row">
+                <span class="skill-name">{{ skill_name }}</span>
+                <span class="skill-ability">{{ ability }}</span>
+                <select name="{{ skill_id }}">
+                    {% for val, name in proficiency_names.items() %}
+                    <option value="{{ val }}"
+                        {% if character and attribute(character, skill_id) == val %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
                 </select>
             </div>
             {% endfor %}
         </div>
     </div>
-    
-    <div class="form-actions">
-        <button type="submit" class="button">💾 Сохранить</button>
-        <a href="{{ url_for('index') }}" class="button secondary">↩️ Отмена</a>
+
+    {# ── Классовая сложность ──────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">🎯 Классовая сложность (КС класса)</h3>
+        <p class="hint section-hint">КС = 10 + Уровень + Бонус владения + Модификатор ключевой характеристики</p>
+        <div class="form-grid-3">
+            <div class="form-group">
+                <label>Владение КС класса</label>
+                <select name="class_dc_prof">
+                    {% for val, name in proficiency_names.items() %}
+                    <option value="{{ val }}"
+                        {% if character and character.class_dc_prof == val %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Ключевая характеристика</label>
+                <select name="class_dc_ability">
+                    {% for key, label in ability_names.items() %}
+                    <option value="{{ key }}"
+                        {% if character and character.class_dc_ability == key %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {# ── Черты ────────────────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">🌟 Черты</h3>
+        <input type="hidden" name="feats_json" id="feats_json"
+               value="{{ character.feats_json if character else '[]' }}">
+        <div id="feats-list"></div>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="addFeat()">+ Добавить черту</button>
+    </div>
+
+    {# ── Классовые умения ─────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">⚡ Классовые умения</h3>
+        <input type="hidden" name="class_abilities_json" id="class_abilities_json"
+               value="{{ character.class_abilities_json if character else '[]' }}">
+        <div id="abilities-list"></div>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="addAbility()">+ Добавить умение</button>
+    </div>
+
+    {# ── Заклинания ───────────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">✨ Заклинания</h3>
+        <input type="hidden" name="spells_json" id="spells_json"
+               value="{{ character.spells_json if character else '{}' }}">
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="is-caster"
+                       {% if character and character.spells and character.spells.get('is_caster') %}checked{% endif %}
+                       onchange="toggleSpells(this)">
+                Персонаж является заклинателем
+            </label>
+        </div>
+
+        <div id="spell-section" style="display:none">
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label>Традиция</label>
+                    <select id="spell-tradition">
+                        {% for key, label in traditions.items() %}
+                        <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Тип заклинателя</label>
+                    <select id="spell-casting-type">
+                        <option value="prepared">Подготовленные</option>
+                        <option value="spontaneous">Спонтанные</option>
+                        <option value="focus">Фокусные</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Владение атакой заклинаниями</label>
+                    <select id="spell-attack-prof">
+                        {% for val, name in proficiency_names.items() %}
+                        <option value="{{ val }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <h4 class="sub-title">Слоты заклинаний по рангам</h4>
+            <div class="slots-grid">
+                {% for rank in range(1, 11) %}
+                <div class="form-group">
+                    <label>Ранг {{ rank }}</label>
+                    <input type="number" class="slot-input" data-rank="{{ rank }}" min="0" value="0">
+                </div>
+                {% endfor %}
+            </div>
+
+            <h4 class="sub-title">Заговоры (Cantrips)</h4>
+            <div id="cantrips-list"></div>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="addSpell('cantrip')">+ Заговор</button>
+
+            <h4 class="sub-title">Заклинания</h4>
+            <div id="spells-list"></div>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="addSpell('spell')">+ Заклинание</button>
+        </div>
+    </div>
+
+    {# ── Инвентарь ────────────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">🎒 Инвентарь</h3>
+        <input type="hidden" name="inventory_json" id="inventory_json"
+               value="{{ character.inventory_json if character else '[]' }}">
+        <div id="inventory-list"></div>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="addItem()">+ Добавить предмет</button>
+    </div>
+
+    {# ── Кнопки формы ─────────────────────────────────────────────────── #}
+    <div class="form-actions sticky-actions">
+        <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+        {% if character %}
+        <a href="{{ url_for('view_character', id=character.id) }}" class="btn btn-secondary">Отмена</a>
+        {% else %}
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+        {% endif %}
     </div>
 </form>
+
+<script>
+const INITIAL_FEATS       = {{ (character.feats_json if character else '[]') | safe }};
+const INITIAL_ABILITIES   = {{ (character.class_abilities_json if character else '[]') | safe }};
+const INITIAL_SPELLS_DATA = {{ (character.spells_json if character else '{}') | safe }};
+const INITIAL_INVENTORY   = {{ (character.inventory_json if character else '[]') | safe }};
+initForm(INITIAL_FEATS, INITIAL_ABILITIES, INITIAL_SPELLS_DATA, INITIAL_INVENTORY);
+</script>
 {% endblock %}

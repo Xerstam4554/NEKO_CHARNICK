@@ -1,275 +1,621 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* ============================================================
+   PF2e Character Sheet — стили
+   ============================================================ */
+
+:root {
+    --red:       #8b1a1a;
+    --red-dark:  #6b1010;
+    --red-light: #c0392b;
+    --gold:      #c9a84c;
+    --gold-dark: #a07a2a;
+    --bg:        #f2ede6;
+    --bg-card:   #ffffff;
+    --text:      #1a1a1a;
+    --text-muted:#6b6b6b;
+    --border:    #ddd0c0;
+    --shadow:    0 2px 8px rgba(0,0,0,.08);
+    --radius:    8px;
+    --green:     #27ae60;
+    --blue:      #2980b9;
 }
 
+/* ── Сброс и базовые стили ─────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
     line-height: 1.6;
-    color: #333;
-    background: #f5f5f5;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+/* ── Шапка ─────────────────────────────────────────────────────────────── */
 
 header {
-    background: #2c3e50;
-    color: white;
-    padding: 1rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: linear-gradient(135deg, var(--red-dark), var(--red));
+    color: #fff;
+    padding: .9rem 0;
+    box-shadow: 0 3px 10px rgba(0,0,0,.25);
+    position: sticky; top: 0; z-index: 100;
 }
 
-header h1 {
-    font-size: 1.5rem;
-}
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 
-header h1 a {
-    color: white;
+.site-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gold);
     text-decoration: none;
+    letter-spacing: .03em;
 }
+.site-title:hover { color: #fff; }
 
-header h1 a:hover {
-    color: #3498db;
+header nav { display: flex; gap: .5rem; }
+header nav a {
+    color: rgba(255,255,255,.85);
+    text-decoration: none;
+    padding: .35rem .8rem;
+    border-radius: 4px;
+    font-size: .9rem;
+    transition: background .2s;
 }
+header nav a:hover { background: rgba(255,255,255,.15); color: #fff; }
 
-main {
-    flex: 1;
-    padding: 2rem 0;
-}
+/* ── Подвал ─────────────────────────────────────────────────────────────── */
 
 footer {
-    background: #34495e;
-    color: white;
+    background: var(--red-dark);
+    color: rgba(255,255,255,.6);
     text-align: center;
-    padding: 1rem 0;
+    padding: .8rem;
+    font-size: .8rem;
     margin-top: auto;
 }
 
-h2 {
+/* ── Основной контент ──────────────────────────────────────────────────── */
+
+main { padding: 1.5rem 0 3rem; flex: 1; }
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 1.5rem;
-    color: #2c3e50;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 0.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
-h3 {
-    margin: 1rem 0;
-    color: #34495e;
+.page-header h2 {
+    font-size: 1.6rem;
+    color: var(--red-dark);
+    border-bottom: 3px solid var(--gold);
+    padding-bottom: .3rem;
 }
 
-.button {
+/* ── Flash-сообщения ───────────────────────────────────────────────────── */
+
+.flash-messages { margin: .8rem auto; }
+.flash {
+    background: #ffeeba;
+    border: 1px solid #ffc107;
+    border-radius: var(--radius);
+    padding: .6rem 1rem;
+    margin-bottom: .4rem;
+}
+
+/* ── Кнопки ─────────────────────────────────────────────────────────────── */
+
+.btn {
     display: inline-block;
-    padding: 10px 20px;
-    background: #3498db;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
+    padding: .45rem 1rem;
+    border-radius: 5px;
     border: none;
     cursor: pointer;
-    font-size: 14px;
-    transition: background 0.3s;
+    font-size: .88rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background .2s, transform .1s;
+    white-space: nowrap;
+}
+.btn:active { transform: scale(.97); }
+
+.btn-primary   { background: var(--red);      color: #fff; }
+.btn-primary:hover { background: var(--red-dark); }
+
+.btn-secondary { background: #6c757d;  color: #fff; }
+.btn-secondary:hover { background: #5a6268; }
+
+.btn-danger    { background: #dc3545;  color: #fff; }
+.btn-danger:hover { background: #b02a37; }
+
+.btn-success   { background: var(--green); color: #fff; }
+.btn-success:hover { background: #219a52; }
+
+.btn-sm { padding: .3rem .7rem; font-size: .8rem; }
+
+/* ── Карточки ───────────────────────────────────────────────────────────── */
+
+.card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.2rem;
 }
 
-.button:hover {
-    background: #2980b9;
+.card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--red-dark);
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: .3rem;
+    margin-bottom: 1rem;
 }
 
-.button.secondary {
-    background: #95a5a6;
+.sub-title {
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 1rem 0 .5rem;
+    border-left: 3px solid var(--gold);
+    padding-left: .5rem;
 }
 
-.button.secondary:hover {
-    background: #7f8c8d;
+/* ── Бейджи ─────────────────────────────────────────────────────────────── */
+
+.badge {
+    display: inline-block;
+    padding: .2rem .55rem;
+    border-radius: 12px;
+    font-size: .78rem;
+    font-weight: 600;
+    background: var(--red);
+    color: #fff;
+    margin-right: .3rem;
+}
+.badge-level   { background: var(--gold-dark); }
+.badge-info    { background: #5d7a8c; }
+.badge-sm      { padding: .1rem .35rem; font-size: .72rem; }
+
+/* ── Список персонажей ─────────────────────────────────────────────────── */
+
+.char-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
 }
 
-.button.small {
-    padding: 5px 10px;
-    font-size: 12px;
-}
-
-.button.delete {
-    background: #e74c3c;
-}
-
-.button.delete:hover {
-    background: #c0392b;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 4px;
+.char-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-th, td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-th {
-    background: #34495e;
-    color: white;
-    font-weight: 500;
-}
-
-tr:hover {
-    background: #f8f9fa;
-}
-
-.form-section {
-    background: white;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.form-grid, .stats-grid, .combat-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-}
-
-.skills-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 10px;
-}
-
-.form-group {
-    margin-bottom: 10px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: #2c3e50;
-}
-
-.form-group input,
-.form-group select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: #3498db;
-}
-
-.form-actions {
-    margin-top: 20px;
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    transition: transform .15s, box-shadow .15s;
 }
+.char-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,.12); }
 
-.character-header {
+.char-card-avatar {
+    height: 160px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--red-dark), var(--red));
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    justify-content: center;
+}
+.char-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.char-card-avatar-placeholder {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+    color: #fff;
+    font-weight: 700;
 }
 
-.header-actions {
+.char-card-body { padding: .9rem 1rem; flex: 1; }
+.char-card-body h3 { font-size: 1.05rem; margin-bottom: .4rem; }
+.char-card-meta { display: flex; flex-wrap: wrap; gap: .2rem; margin-bottom: .4rem; font-size: .82rem; color: var(--text-muted); }
+.char-card-hp { font-size: .9rem; color: var(--red); font-weight: 600; }
+
+.char-card-actions {
     display: flex;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: .4rem;
+    padding: .7rem 1rem;
+    border-top: 1px solid var(--border);
+    background: #fafafa;
 }
 
-.character-sheet {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.info-block,
-.stats-block,
-.combat-block,
-.skills-block {
-    background: white;
-    padding: 20px;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.skills-block {
-    grid-column: 1 / -1;
-}
-
-.info-table,
-.stats-table,
-.combat-table,
-.skills-table {
-    margin-top: 10px;
-}
-
-.modifier, .bonus {
-    font-weight: bold;
-    color: #27ae60;
-}
+/* ── Пустой список ─────────────────────────────────────────────────────── */
 
 .empty-state {
     text-align: center;
-    padding: 40px;
-    background: white;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+.empty-icon { font-size: 3.5rem; margin-bottom: .8rem; }
+.empty-state p { margin-bottom: 1rem; }
+
+/* ── Форма персонажа ─────────────────────────────────────────────────────── */
+
+.form-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+.form-grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+
+.form-group { display: flex; flex-direction: column; gap: .3rem; }
+.form-group.full-width { grid-column: 1 / -1; }
+
+.form-group label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--red-dark);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    padding: .45rem .7rem;
+    font-size: .9rem;
+    font-family: inherit;
+    background: #fff;
+    color: var(--text);
+    transition: border-color .2s;
+    width: 100%;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,.15);
+}
+
+.hint { color: var(--text-muted); font-size: .8rem; font-weight: 400; }
+.section-hint { margin-bottom: .8rem; }
+
+/* ── Характеристики ─────────────────────────────────────────────────────── */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: .8rem;
+}
+
+.stat-box { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+.stat-box label { font-size: .75rem; font-weight: 700; color: var(--red-dark); text-align: center; }
+.stat-input { text-align: center; font-size: 1.1rem; font-weight: 700; width: 100%; }
+
+/* Просмотр характеристик */
+.stat-display {
+    background: linear-gradient(135deg, var(--red-dark), var(--red));
+    color: #fff;
+    border-radius: var(--radius);
+    padding: .9rem .5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .2rem;
+}
+.stat-abbr  { font-size: .7rem; font-weight: 700; opacity: .8; letter-spacing: .1em; }
+.stat-value { font-size: 1.6rem; font-weight: 800; color: var(--gold); }
+.stat-label { font-size: .7rem; opacity: .85; }
+
+/* ── Испытания ──────────────────────────────────────────────────────────── */
+
+.saves-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+
+.save-box {
+    background: linear-gradient(135deg, #3a3a5a, #2c2c45);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: center;
+}
+.save-value { font-size: 1.8rem; font-weight: 800; color: var(--gold); }
+.save-name  { font-weight: 700; margin: .2rem 0; }
+.save-prof  { font-size: .75rem; opacity: .7; }
+
+/* ── ХП-карточка ─────────────────────────────────────────────────────────── */
+
+.hp-card { border-left: 5px solid var(--red); }
+
+.hp-row {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    margin-bottom: .8rem;
+    flex-wrap: wrap;
+}
+
+.hp-display {
+    flex: 1;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--red);
+    min-width: 80px;
+}
+.hp-sep { color: var(--text-muted); margin: 0 .2rem; }
+
+.hp-btn { min-width: 48px; font-size: 1rem; }
+
+.hp-bar-wrap {
+    background: #e0e0e0;
+    border-radius: 10px;
+    height: 12px;
+    overflow: hidden;
+    margin-bottom: .8rem;
+}
+.hp-bar {
+    height: 100%;
+    background: var(--green);
+    border-radius: 10px;
+    transition: width .3s, background .3s;
+}
+.hp-bar.hp-low  { background: #f39c12; }
+.hp-bar.hp-crit { background: var(--red-light); }
+
+.combat-stats {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding-top: .6rem;
+    border-top: 1px solid var(--border);
+}
+.combat-stat { text-align: center; }
+.combat-stat-label { display: block; font-size: .72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+.combat-stat-value { display: block; font-size: 1.3rem; font-weight: 800; color: var(--red-dark); }
+.combat-stat-prof  { font-size: .75rem; color: var(--text-muted); }
+
+/* ── Навыки ─────────────────────────────────────────────────────────────── */
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: .5rem;
+}
+
+.skill-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: .5rem;
+    padding: .3rem .5rem;
     border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.skill-row:hover { background: var(--bg); }
+.skill-name { font-size: .88rem; font-weight: 600; }
+.skill-ability { font-size: .75rem; color: var(--text-muted); white-space: nowrap; }
+
+/* Таблица навыков на просмотре */
+.skills-table { width: 100%; border-collapse: collapse; }
+.skills-table th, .skills-table td {
+    padding: .5rem .7rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: .88rem;
+}
+.skills-table th { background: var(--red-dark); color: #fff; font-weight: 600; }
+.skills-table tr.trained td { background: #fafff8; }
+.skills-table tr:hover td { background: #f5f0e8; }
+
+.mod-col   { color: var(--text-muted); width: 60px; }
+.bonus-col { font-weight: 800; font-size: 1rem; color: var(--red-dark); width: 60px; }
+
+/* Уровни владения */
+.prof-badge {
+    display: inline-block;
+    padding: .1rem .45rem;
+    border-radius: 10px;
+    font-size: .75rem;
+    font-weight: 600;
+}
+.prof-0 { background: #eee; color: #777; }
+.prof-1 { background: #d4edda; color: #155724; }
+.prof-2 { background: #cce5ff; color: #004085; }
+.prof-3 { background: #fff3cd; color: #856404; }
+.prof-4 { background: #f8d7da; color: #721c24; }
+
+/* ── Просмотр шапки персонажа ─────────────────────────────────────────── */
+
+.char-view-header {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
 }
 
-.empty-state p {
-    color: #7f8c8d;
-    margin-bottom: 20px;
+.char-view-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.char-view-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.char-view-title { flex: 1; min-width: 200px; }
+.char-view-title h2 { font-size: 1.8rem; margin-bottom: .4rem; color: var(--red-dark); }
+.char-view-meta { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .5rem; }
+.char-xp, .char-langs { font-size: .85rem; color: var(--text-muted); margin-top: .2rem; }
+
+.char-view-actions { display: flex; gap: .5rem; flex-wrap: wrap; align-self: flex-start; }
+
+/* ── Аватар загрузка ─────────────────────────────────────────────────────── */
+
+.avatar-upload-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.avatar-preview {
+    width: 140px;
+    height: 140px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 2px solid var(--border);
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: .5rem;
+}
+.avatar-placeholder.large {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--red-dark), var(--red));
+    color: var(--gold);
+    font-size: 3rem;
+    font-weight: 800;
 }
 
-.actions {
-    white-space: nowrap;
+/* ── Черты / умения ─────────────────────────────────────────────────────── */
+
+.feat-list { display: flex; flex-direction: column; gap: .5rem; }
+.feat-item {
+    background: #faf9f7;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: .6rem .9rem;
+}
+.feat-item p { font-size: .85rem; color: var(--text-muted); margin-top: .2rem; }
+
+/* ── Динамические строки формы ─────────────────────────────────────────── */
+
+.dynamic-row {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    background: #faf9f7;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: .7rem;
+    margin-bottom: .5rem;
+    position: relative;
 }
 
-.actions .button {
-    margin-right: 5px;
+.dynamic-fields {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    align-items: center;
 }
+.dynamic-fields input, .dynamic-fields select { flex: 1; min-width: 120px; }
+
+.inventory-fields { gap: .4rem; }
+
+.remove-btn {
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+}
+
+.check-label { display: flex; align-items: center; gap: .3rem; font-size: .85rem; white-space: nowrap; }
+.check-label input[type="checkbox"] { width: auto; }
+
+/* ── Слоты заклинаний ─────────────────────────────────────────────────── */
+
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: .5rem;
+    margin-bottom: .8rem;
+}
+.slot-input { text-align: center; }
+
+.slots-display { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .8rem; }
+.slot-box {
+    background: linear-gradient(135deg, #3a3a5a, #2c2c45);
+    color: #fff;
+    border-radius: 6px;
+    padding: .5rem .8rem;
+    text-align: center;
+}
+.slot-rank  { font-size: .7rem; opacity: .7; }
+.slot-count { font-size: 1.1rem; font-weight: 800; color: var(--gold); }
+
+/* ── Заклинания ──────────────────────────────────────────────────────── */
+
+.spell-meta { display: flex; gap: .8rem; flex-wrap: wrap; align-items: center; margin-bottom: .8rem; font-size: .88rem; }
+
+.spell-list { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .8rem; }
+.spell-item {
+    padding: .4rem .7rem;
+    background: #faf9f7;
+    border-left: 3px solid var(--gold);
+    border-radius: 0 4px 4px 0;
+    font-size: .88rem;
+}
+.spell-rank { color: var(--text-muted); font-size: .78rem; margin-right: .4rem; }
+.spell-desc { color: var(--text-muted); margin-left: .4rem; }
+
+/* ── Форма действия ─────────────────────────────────────────────────────── */
+
+.form-actions { display: flex; gap: .7rem; flex-wrap: wrap; }
+.sticky-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg);
+    padding: .8rem 0;
+    border-top: 2px solid var(--border);
+    z-index: 10;
+}
+
+.simple-form { display: flex; flex-direction: column; gap: 1rem; }
+
+/* ── Числовые поля ─────────────────────────────────────────────────────── */
+
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
+
+/* ── Адаптивность ─────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
-    .character-header {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .form-grid, .stats-grid, .combat-grid, .skills-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    table {
-        font-size: 14px;
-    }
-    
-    th, td {
-        padding: 8px;
-    }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .saves-grid { grid-template-columns: 1fr; gap: .5rem; }
+    .char-view-header { flex-direction: column; }
+    .char-card-actions { flex-direction: column; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .hp-row { justify-content: center; }
+    .slots-grid { grid-template-columns: repeat(5, 1fr); }
+    .skills-table { font-size: .8rem; }
+    .skills-table th, .skills-table td { padding: .35rem .4rem; }
 }
 
-input[type="number"] {
-    -moz-appearance: textfield;
-}
-
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    opacity: 1;
-    height: 20px;
+@media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-grid-3, .form-grid-4 { grid-template-columns: 1fr; }
 }

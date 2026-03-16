@@ -8,19 +8,34 @@
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1><a href="{{ url_for('index') }}">PF2 Лист персонажа</a></h1>
+        <div class="container header-inner">
+            <a href="{{ url_for('index') }}" class="site-title">⚔️ PF2e Лист персонажа</a>
+            <nav>
+                <a href="{{ url_for('index') }}">Персонажи</a>
+                <a href="{{ url_for('create_character') }}">+ Создать</a>
+                <a href="{{ url_for('import_character') }}">Импорт</a>
+            </nav>
         </div>
     </header>
-    
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flash-messages container">
+        {% for msg in messages %}<div class="flash">{{ msg }}</div>{% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
     <main class="container">
         {% block content %}{% endblock %}
     </main>
-    
+
     <footer>
         <div class="container">
-            <p>Простой лист персонажа для Pathfinder 2</p>
+            Pathfinder 2e Remastered &nbsp;·&nbsp; Unoffial Character Sheet
         </div>
     </footer>
+
+    <script src="{{ url_for('static', filename='js/character.js') }}"></script>
 </body>
 </html>
