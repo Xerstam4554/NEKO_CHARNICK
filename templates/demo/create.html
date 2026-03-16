@@ -1,0 +1,160 @@
+{% extends "demo/base.html" %}
+{% block content %}
+<h2>{% if c %}Редактировать: {{ c.name }}{% else %}Новый персонаж{% endif %}</h2>
+
+{#
+    Вся логика — только на сервере (Flask).
+    Нет JavaScript. Нет динамических добавлений.
+    Вместо динамических списков — фиксированные строки в таблице.
+#}
+
+<form method="POST">
+
+    {# ── Основная информация ── #}
+    <div class="card">
+        <h3>📋 Основная информация</h3>
+        <div class="grid">
+            <div>
+                <label>Имя *</label>
+                <input name="name" value="{{ c.name if c else '' }}" required>
+            </div>
+            <div>
+                <label>Класс</label>
+                <select name="character_class">
+                    <option value="">— выберите —</option>
+                    {% for cls in classes %}
+                    <option {% if c and c.character_class == cls %}selected{% endif %}>{{ cls }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Уровень</label>
+                <input type="number" name="level" value="{{ c.level if c else 1 }}" min="1" max="20">
+            </div>
+            <div>
+                <label>Происхождение</label>
+                <input name="ancestry" value="{{ c.ancestry if c else '' }}">
+            </div>
+            <div>
+                <label>Предыстория</label>
+                <input name="background" value="{{ c.background if c else '' }}">
+            </div>
+            <div>
+                <label>Опыт (XP)</label>
+                <input type="number" name="experience" value="{{ c.experience if c else 0 }}" min="0">
+            </div>
+            <div style="grid-column: 1 / -1">
+                <label>Языки <span class="hint">(через запятую)</span></label>
+                <input name="languages" placeholder="Общий, Эльфийский…" value="{{ c.languages if c else '' }}">
+            </div>
+        </div>
+    </div>
+
+    {# ── Характеристики ── #}
+    <div class="card">
+        <h3>💪 Характеристики <span class="hint">— вводи модификатор: −5 … +10</span></h3>
+        <div class="grid-6">
+            {% for attr, lbl in [('strength','Сила'),('dexterity','Ловкость'),('constitution','Телосложение'),
+                                  ('intelligence','Интеллект'),('wisdom','Мудрость'),('charisma','Харизма')] %}
+            <div style="text-align:center">
+                <label>{{ lbl }}</label>
+                <input type="number" name="{{ attr }}" min="-5" max="10"
+                       value="{{ attribute(c, attr) if c else 0 }}" style="text-align:center;font-size:1.1rem">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ── Боевые параметры ── #}
+    <div class="card">
+        <h3>⚔️ Боевые параметры</h3>
+        <div class="grid">
+            {% for name, lbl, default in [('max_hp','Макс. ХП',10),('current_hp','Тек. ХП',10),
+                                           ('armor_class','КБ',10),('speed','Скорость (фут.)',25)] %}
+            <div>
+                <label>{{ lbl }}</label>
+                <input type="number" name="{{ name }}" value="{{ attribute(c, name) if c else default }}">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ── Испытания ── #}
+    <div class="card">
+        <h3>🛡 Испытания</h3>
+        <div class="grid-3">
+            {% for field, lbl, ab in [('fortitude_prof','Стойкость','Тел'),
+                                       ('reflex_prof','Реакция','Лов'),
+                                       ('will_prof','Воля','Мдр')] %}
+            <div>
+                <label>{{ lbl }} <span class="hint">({{ ab }})</span></label>
+                <select name="{{ field }}">
+                    {% for val, nm in proficiency_names.items() %}
+                    <option value="{{ val }}" {% if c and attribute(c, field) == val %}selected{% endif %}>{{ nm }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ── Навыки ── #}
+    <div class="card">
+        <h3>📚 Навыки</h3>
+        <div class="grid">
+            {% for sk, lbl, ab in [
+                ('acrobatics','Акробатика','Лов'),('arcana','Аркана','Инт'),
+                ('athletics','Атлетика','Сил'),('crafting','Ремесло','Инт'),
+                ('deception','Обман','Хар'),('diplomacy','Дипломатия','Хар'),
+                ('intimidation','Запугивание','Хар'),('medicine','Медицина','Мдр'),
+                ('nature','Природа','Мдр'),('occultism','Оккультизм','Инт'),
+                ('performance','Выступление','Хар'),('religion','Религия','Мдр'),
+                ('society','Общество','Инт'),('stealth','Скрытность','Лов'),
+                ('survival','Выживание','Мдр'),('thievery','Воровство','Лов')] %}
+            <div>
+                <label>{{ lbl }} <span class="hint">{{ ab }}</span></label>
+                <select name="{{ sk }}">
+                    {% for val, nm in proficiency_names.items() %}
+                    <option value="{{ val }}" {% if c and attribute(c, sk) == val %}selected{% endif %}>{{ nm }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ── Черты — фиксированные поля ── #}
+    <div class="card">
+        <h3>🌟 Черты <span class="hint">— 8 слотов</span></h3>
+        <p class="hint" style="margin-bottom:.7rem">
+            Без JS количество черт фиксировано. На основном сайте можно добавлять любое количество динамически.
+        </p>
+        <table class="feats-table">
+            <thead><tr><th>Название</th><th>Тип</th><th>Уровень</th><th>Описание</th></tr></thead>
+            <tbody>
+            {% set saved = c.feats if c else [] %}
+            {% for i in range(8) %}
+            {% set feat = saved[i] if i < saved|length else {} %}
+            <tr>
+                <td><input name="feat_name_{{ i }}"  value="{{ feat.get('name','') }}" placeholder="Название"></td>
+                <td>
+                    <select name="feat_type_{{ i }}">
+                        {% for tv, tl in [('general','Общая'),('skill','Навыка'),('ancestry','Происх.'),('class','Классовая')] %}
+                        <option value="{{ tv }}" {% if feat.get('type') == tv %}selected{% endif %}>{{ tl }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><input type="number" name="feat_level_{{ i }}" value="{{ feat.get('level','') }}" min="1" max="20"></td>
+                <td><input name="feat_desc_{{ i }}" value="{{ feat.get('description','') }}" placeholder="Описание"></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="actions">
+        <button type="submit" class="btn btn-red">💾 Сохранить</button>
+        <a href="/demo" class="btn btn-grey">Отмена</a>
+    </div>
+</form>
+{% endblock %}

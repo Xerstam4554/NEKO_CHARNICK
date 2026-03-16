@@ -185,5 +185,88 @@ def _fill_character(character, form, files):
         character.avatar = filename
 
 
+# ── ДЕМО — только Flask, без JS ──────────────────────────────────────────────
+
+@app.route('/demo')
+def demo_index():
+    characters = Character.query.order_by(Character.created_at.desc()).all()
+    return render_template('demo/index.html', characters=characters)
+
+
+@app.route('/demo/create', methods=['GET', 'POST'])
+def demo_create():
+    if request.method == 'POST':
+        character = Character()
+        _fill_demo(character, request.form)
+        db.session.add(character)
+        db.session.commit()
+        return redirect(f'/demo/character/{character.id}')
+    return render_template('demo/create.html', c=None)
+
+
+@app.route('/demo/edit/<int:id>', methods=['GET', 'POST'])
+def demo_edit(id):
+    character = Character.query.get_or_404(id)
+    if request.method == 'POST':
+        _fill_demo(character, request.form)
+        db.session.commit()
+        return redirect(f'/demo/character/{character.id}')
+    return render_template('demo/create.html', c=character)
+
+
+@app.route('/demo/character/<int:id>')
+def demo_view(id):
+    character = Character.query.get_or_404(id)
+    return render_template('demo/character.html', c=character)
+
+
+@app.route('/demo/hp/<int:id>', methods=['POST'])
+def demo_hp(id):
+    character = Character.query.get_or_404(id)
+    delta = int(request.form.get('delta', 0))
+    character.current_hp = max(0, min(character.max_hp, character.current_hp + delta))
+    db.session.commit()
+    return redirect(f'/demo/character/{id}')
+
+
+def _fill_demo(character, form):
+    character.name = form['name']
+    character.level = int(form.get('level', 1))
+    character.experience = int(form.get('experience', 0))
+    character.ancestry = form.get('ancestry', '')
+    character.background = form.get('background', '')
+    character.character_class = form.get('character_class', '')
+    character.languages = form.get('languages', '')
+
+    for attr in ('strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'):
+        setattr(character, attr, int(form.get(attr, 0)))
+
+    for sk in ['acrobatics', 'arcana', 'athletics', 'crafting', 'deception',
+               'diplomacy', 'intimidation', 'medicine', 'nature', 'occultism',
+               'performance', 'religion', 'society', 'stealth', 'survival', 'thievery']:
+        setattr(character, sk, int(form.get(sk, 0)))
+
+    character.fortitude_prof = int(form.get('fortitude_prof', 0))
+    character.reflex_prof = int(form.get('reflex_prof', 0))
+    character.will_prof = int(form.get('will_prof', 0))
+    character.max_hp = int(form.get('max_hp', 10))
+    character.current_hp = int(form.get('current_hp', 10))
+    character.armor_class = int(form.get('armor_class', 10))
+    character.speed = int(form.get('speed', 25))
+
+    # Черты из фиксированных полей формы
+    feats = []
+    for i in range(8):
+        name = form.get(f'feat_name_{i}', '').strip()
+        if name:
+            feats.append({
+                'name': name,
+                'type': form.get(f'feat_type_{i}', 'general'),
+                'level': form.get(f'feat_level_{i}', ''),
+                'description': form.get(f'feat_desc_{i}', ''),
+            })
+    character.feats_json = json.dumps(feats, ensure_ascii=False)
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

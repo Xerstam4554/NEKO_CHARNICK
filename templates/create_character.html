@@ -330,6 +330,9 @@
     </div>
 </form>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
 const INITIAL_FEATS       = {{ (character.feats_json if character else '[]') | safe }};
 const INITIAL_ABILITIES   = {{ (character.class_abilities_json if character else '[]') | safe }};

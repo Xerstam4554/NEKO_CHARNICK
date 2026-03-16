@@ -1,0 +1,119 @@
+{% extends "demo/base.html" %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-bottom:1.2rem">
+    <h2 style="margin:0;border:none">{{ c.name }}</h2>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <a href="/demo/edit/{{ c.id }}" class="btn btn-red">✏️ Изменить</a>
+        <a href="/demo" class="btn btn-grey">↩ Список</a>
+    </div>
+</div>
+
+{# ── ХП — обновляется через обычную форму Flask ── #}
+<div class="card">
+    <h3>❤️ Здоровье</h3>
+    <p style="font-size:1.8rem;font-weight:800;color:#8b1a1a;margin-bottom:.5rem">
+        {{ c.current_hp }} / {{ c.max_hp }}
+    </p>
+
+    {# Без JS — три отдельные формы с кнопками. Каждое нажатие = запрос к серверу #}
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <form method="POST" action="/demo/hp/{{ c.id }}">
+            <input type="hidden" name="delta" value="-1">
+            <button class="btn btn-grey btn-sm">−1</button>
+        </form>
+        <form method="POST" action="/demo/hp/{{ c.id }}">
+            <input type="hidden" name="delta" value="-5">
+            <button class="btn btn-grey btn-sm">−5</button>
+        </form>
+        <form method="POST" action="/demo/hp/{{ c.id }}">
+            <input type="hidden" name="delta" value="+5">
+            <button class="btn btn-grey btn-sm">+5</button>
+        </form>
+        <form method="POST" action="/demo/hp/{{ c.id }}">
+            <input type="hidden" name="delta" value="+1">
+            <button class="btn btn-grey btn-sm">+1</button>
+        </form>
+    </div>
+</div>
+
+{# ── Характеристики ── #}
+<div class="card">
+    <h3>💪 Характеристики</h3>
+    <div class="grid-6">
+        {% for attr, lbl in [('strength','Сила'),('dexterity','Ловкость'),('constitution','Телосложение'),
+                              ('intelligence','Интеллект'),('wisdom','Мудрость'),('charisma','Харизма')] %}
+        <div style="text-align:center;background:#6b1010;color:#fff;border-radius:8px;padding:.8rem .4rem">
+            <div style="font-size:.65rem;opacity:.7;letter-spacing:.08em;text-transform:uppercase">{{ lbl }}</div>
+            <div style="font-size:1.7rem;font-weight:800;color:#c9a84c">
+                {{ fmt_mod(attribute(c, attr)) }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{# ── Испытания ── #}
+<div class="card">
+    <h3>🛡 Испытания</h3>
+    <div class="grid-3">
+        {% for bonus, lbl, prof_field in [
+            (c.fortitude_bonus, 'Стойкость', c.fortitude_prof),
+            (c.reflex_bonus,    'Реакция',   c.reflex_prof),
+            (c.will_bonus,      'Воля',      c.will_prof)] %}
+        <div style="text-align:center;background:#2c2c45;color:#fff;border-radius:8px;padding:.9rem">
+            <div style="font-size:1.7rem;font-weight:800;color:#c9a84c">{{ fmt_mod(bonus) }}</div>
+            <div style="font-weight:700">{{ lbl }}</div>
+            <div style="font-size:.75rem;opacity:.65">({{ c.get_proficiency_name(prof_field) }})</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{# ── Навыки ── #}
+<div class="card">
+    <h3>📚 Навыки</h3>
+    <table class="feats-table">
+        <thead><tr><th>Навык</th><th>Владение</th><th>Бонус</th></tr></thead>
+        <tbody>
+        {% for sk, lbl, mod in [
+            ('acrobatics','Акробатика',c.dexterity),('arcana','Аркана',c.intelligence),
+            ('athletics','Атлетика',c.strength),('crafting','Ремесло',c.intelligence),
+            ('deception','Обман',c.charisma),('diplomacy','Дипломатия',c.charisma),
+            ('intimidation','Запугивание',c.charisma),('medicine','Медицина',c.wisdom),
+            ('nature','Природа',c.wisdom),('occultism','Оккультизм',c.intelligence),
+            ('performance','Выступление',c.charisma),('religion','Религия',c.wisdom),
+            ('society','Общество',c.intelligence),('stealth','Скрытность',c.dexterity),
+            ('survival','Выживание',c.wisdom),('thievery','Воровство',c.dexterity)] %}
+        {% set prof = attribute(c, sk) %}
+        <tr>
+            <td>{{ lbl }}</td>
+            <td>{{ c.get_proficiency_name(prof) }}</td>
+            <td><strong>{{ fmt_mod(c.get_skill_bonus(prof, mod)) }}</strong></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# ── Черты ── #}
+{% if c.feats %}
+<div class="card">
+    <h3>🌟 Черты</h3>
+    <table class="feats-table">
+        <thead><tr><th>Название</th><th>Тип</th><th>Уровень</th><th>Описание</th></tr></thead>
+        <tbody>
+        {% for f in c.feats %}
+        {% if f.name %}
+        <tr>
+            <td><strong>{{ f.name }}</strong></td>
+            <td>{{ f.type }}</td>
+            <td>{{ f.level or '—' }}</td>
+            <td>{{ f.description or '' }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

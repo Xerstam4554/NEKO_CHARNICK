@@ -1,0 +1,34 @@
+{% extends "demo/base.html" %}
+{% block content %}
+<h2>Персонажи (демо)</h2>
+
+<a href="/demo/create" class="btn btn-red" style="margin-bottom:1rem;display:inline-block">➕ Создать персонажа</a>
+
+{% if characters %}
+<div class="card">
+    <table class="feats-table">
+        <thead>
+            <tr><th>Имя</th><th>Класс</th><th>Уровень</th><th>ХП</th><th>Действия</th></tr>
+        </thead>
+        <tbody>
+        {% for c in characters %}
+        <tr>
+            <td><strong>{{ c.name }}</strong></td>
+            <td>{{ c.character_class or '—' }}</td>
+            <td>{{ c.level }}</td>
+            <td>{{ c.current_hp }} / {{ c.max_hp }}</td>
+            <td>
+                <a href="/demo/character/{{ c.id }}" class="btn btn-grey btn-sm">Просмотр</a>
+                <a href="/demo/edit/{{ c.id }}" class="btn btn-grey btn-sm">Изменить</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card" style="text-align:center; padding: 3rem; color:#888">
+    <p>Персонажей пока нет.</p>
+</div>
+{% endif %}
+{% endblock %}
