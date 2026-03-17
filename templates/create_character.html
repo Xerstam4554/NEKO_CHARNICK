@@ -36,11 +36,11 @@
                 <input type="number" name="level" value="{{ character.level if character else 1 }}" min="1" max="20">
             </div>
             <div class="form-group">
-                <label>Происхождение</label>
+                <label>Народ</label>
                 <input type="text" name="ancestry" value="{{ character.ancestry if character else '' }}">
             </div>
             <div class="form-group">
-                <label>Предыстория</label>
+                <label>Происхождение</label>
                 <input type="text" name="background" value="{{ character.background if character else '' }}">
             </div>
             <div class="form-group">
@@ -119,9 +119,61 @@
         </div>
     </div>
 
+    {# ── Владение доспехами ───────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">🛡 Владение доспехами</h3>
+        <div class="form-grid-4">
+            {% set armors = [
+                ('unarmored_prof',   'Без брони'),
+                ('light_armor_prof', 'Лёгкий доспех'),
+                ('medium_armor_prof','Средний доспех'),
+                ('heavy_armor_prof', 'Тяжёлый доспех'),
+            ] %}
+            {% for field, label in armors %}
+            <div class="form-group">
+                <label>{{ label }}</label>
+                <select name="{{ field }}">
+                    {% for val, name in proficiency_names.items() %}
+                    <option value="{{ val }}"
+                        {% if character and attribute(character, field) == val %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ── Владение оружием ─────────────────────────────────────────────── #}
+    <div class="card">
+        <h3 class="card-title">⚔️ Владение оружием</h3>
+        <div class="form-grid-4">
+            {% set weapons = [
+                ('unarmed_prof',         'Безоружные атаки'),
+                ('simple_weapon_prof',   'Простое оружие'),
+                ('martial_weapon_prof',  'Воинское оружие'),
+                ('advanced_weapon_prof', 'Экзотическое оружие'),
+            ] %}
+            {% for field, label in weapons %}
+            <div class="form-group">
+                <label>{{ label }}</label>
+                <select name="{{ field }}">
+                    {% for val, name in proficiency_names.items() %}
+                    <option value="{{ val }}"
+                        {% if character and attribute(character, field) == val %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
     {# ── Испытания ────────────────────────────────────────────────────── #}
     <div class="card">
-        <h3 class="card-title">🛡 Испытания</h3>
+        <h3 class="card-title">🎲 Испытания</h3>
         <p class="hint section-hint">Бонус = Модификатор + Уровень + Бонус владения (если обучен)</p>
         <div class="form-grid-3">
             {% set saves = [
@@ -165,22 +217,22 @@
         <h3 class="card-title">📚 Навыки</h3>
         <div class="skills-grid">
             {% set skills = [
-                ('acrobatics',   'Акробатика',   'Ловкость'),
-                ('arcana',       'Аркана',        'Интеллект'),
-                ('athletics',    'Атлетика',      'Сила'),
-                ('crafting',     'Ремесло',       'Интеллект'),
-                ('deception',    'Обман',         'Харизма'),
-                ('diplomacy',    'Дипломатия',    'Харизма'),
-                ('intimidation', 'Запугивание',   'Харизма'),
-                ('medicine',     'Медицина',      'Мудрость'),
-                ('nature',       'Природа',       'Мудрость'),
-                ('occultism',    'Оккультизм',    'Интеллект'),
-                ('performance',  'Выступление',   'Харизма'),
-                ('religion',     'Религия',       'Мудрость'),
-                ('society',      'Общество',      'Интеллект'),
-                ('stealth',      'Скрытность',    'Ловкость'),
-                ('survival',     'Выживание',     'Мудрость'),
-                ('thievery',     'Воровство',     'Ловкость'),
+                ('acrobatics',   'Акробатика',  'Ловкость'),
+                ('athletics',    'Атлетика',    'Сила'),
+                ('thievery',     'Воровство',   'Ловкость'),
+                ('survival',     'Выживание',   'Мудрость'),
+                ('diplomacy',    'Дипломатия',  'Харизма'),
+                ('intimidation', 'Запугивание', 'Харизма'),
+                ('performance',  'Исполнение',  'Харизма'),
+                ('medicine',     'Медицина',    'Мудрость'),
+                ('arcana',       'Мистицизм',   'Интеллект'),
+                ('deception',    'Обман',       'Харизма'),
+                ('society',      'Общество',    'Интеллект'),
+                ('occultism',    'Оккультизм',  'Интеллект'),
+                ('nature',       'Природа',     'Мудрость'),
+                ('religion',     'Религия',     'Мудрость'),
+                ('crafting',     'Ремесло',     'Интеллект'),
+                ('stealth',      'Скрытность',  'Ловкость'),
             ] %}
             {% for skill_id, skill_name, ability in skills %}
             <div class="skill-row">
@@ -196,6 +248,22 @@
                 </select>
             </div>
             {% endfor %}
+            {# Знание — особый навык с темой #}
+            <div class="skill-row skill-row-lore">
+                <span class="skill-name">Знание</span>
+                <input type="text" name="lore_topic" placeholder="Тема (напр. Подземелье)"
+                       value="{{ character.lore_topic if character else '' }}"
+                       class="lore-topic-input">
+                <span class="skill-ability">Интеллект</span>
+                <select name="lore">
+                    {% for val, name in proficiency_names.items() %}
+                    <option value="{{ val }}"
+                        {% if character and character.lore == val %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
     </div>
 
@@ -277,7 +345,6 @@
                     <select id="spell-casting-type">
                         <option value="prepared">Подготовленные</option>
                         <option value="spontaneous">Спонтанные</option>
-                        <option value="focus">Фокусные</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -300,13 +367,23 @@
                 {% endfor %}
             </div>
 
-            <h4 class="sub-title">Заговоры (Cantrips)</h4>
+            <h4 class="sub-title">Заговоры</h4>
             <div id="cantrips-list"></div>
             <button type="button" class="btn btn-sm btn-secondary" onclick="addSpell('cantrip')">+ Заговор</button>
 
             <h4 class="sub-title">Заклинания</h4>
             <div id="spells-list"></div>
             <button type="button" class="btn btn-sm btn-secondary" onclick="addSpell('spell')">+ Заклинание</button>
+
+            <h4 class="sub-title">🔮 Фокальные заклинания</h4>
+            <div class="focus-points-row">
+                <div class="form-group" style="flex:0 0 auto">
+                    <label>Фокальных очков (макс.)</label>
+                    <input type="number" id="focus-points-max" min="0" max="3" value="0" style="width:70px">
+                </div>
+            </div>
+            <div id="focus-spells-list"></div>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="addSpell('focus')">+ Фокальное заклинание</button>
         </div>
     </div>
 

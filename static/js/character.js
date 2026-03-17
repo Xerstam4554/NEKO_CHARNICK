@@ -29,7 +29,8 @@ function initForm(initFeats, initAbilities, initSpells, initInventory) {
 const FEAT_TYPES = [
     { value: 'general',  label: 'Общая черта' },
     { value: 'skill',    label: 'Черта навыка' },
-    { value: 'ancestry', label: 'Черта происхождения' },
+    { value: 'ancestry', label: 'Черта народа' },
+    { value: 'heritage', label: 'Черта происхождения' },
     { value: 'class',    label: 'Классовая черта' },
 ];
 
@@ -143,7 +144,6 @@ function initSpellSection() {
     if (spellsData.is_caster) {
         cb.checked = true;
         showSpellSection();
-        // Заполнить сохранённые значения
         setVal('spell-tradition',    spellsData.tradition);
         setVal('spell-casting-type', spellsData.casting_type);
         setVal('spell-attack-prof',  spellsData.spell_attack_prof);
@@ -153,15 +153,21 @@ function initSpellSection() {
             const rank = inp.dataset.rank;
             inp.value = slots[rank] || 0;
         });
+
+        const fpMax = document.getElementById('focus-points-max');
+        if (fpMax) fpMax.value = spellsData.focus_points_max || 0;
+
         renderCantrips(spellsData.cantrips || []);
         renderSpells(spellsData.spells || []);
+        renderFocusSpells(spellsData.focus_spells || []);
     }
 }
 
 function toggleSpells(cb) {
     if (cb.checked) {
-        if (!spellsData.cantrips) spellsData.cantrips = [];
-        if (!spellsData.spells)   spellsData.spells   = [];
+        if (!spellsData.cantrips)     spellsData.cantrips     = [];
+        if (!spellsData.spells)       spellsData.spells       = [];
+        if (!spellsData.focus_spells) spellsData.focus_spells = [];
         showSpellSection();
     } else {
         document.getElementById('spell-section').style.display = 'none';
@@ -170,10 +176,12 @@ function toggleSpells(cb) {
 
 function showSpellSection() {
     document.getElementById('spell-section').style.display = 'block';
-    if (!spellsData.cantrips) spellsData.cantrips = [];
-    if (!spellsData.spells)   spellsData.spells   = [];
+    if (!spellsData.cantrips)     spellsData.cantrips     = [];
+    if (!spellsData.spells)       spellsData.spells       = [];
+    if (!spellsData.focus_spells) spellsData.focus_spells = [];
     renderCantrips(spellsData.cantrips);
     renderSpells(spellsData.spells);
+    renderFocusSpells(spellsData.focus_spells);
 }
 
 function addSpell(kind) {
@@ -181,6 +189,10 @@ function addSpell(kind) {
         spellsData.cantrips = spellsData.cantrips || [];
         spellsData.cantrips.push({ name: '', description: '' });
         renderCantrips(spellsData.cantrips);
+    } else if (kind === 'focus') {
+        spellsData.focus_spells = spellsData.focus_spells || [];
+        spellsData.focus_spells.push({ name: '', description: '' });
+        renderFocusSpells(spellsData.focus_spells);
     } else {
         spellsData.spells = spellsData.spells || [];
         spellsData.spells.push({ name: '', rank: 1, description: '' });
@@ -196,6 +208,11 @@ function removeCantrip(i) {
 function removeSpell(i) {
     spellsData.spells.splice(i, 1);
     renderSpells(spellsData.spells);
+}
+
+function removeFocusSpell(i) {
+    spellsData.focus_spells.splice(i, 1);
+    renderFocusSpells(spellsData.focus_spells);
 }
 
 function renderCantrips(list) {
@@ -232,6 +249,22 @@ function renderSpells(list) {
     `).join('');
 }
 
+function renderFocusSpells(list) {
+    const c = document.getElementById('focus-spells-list');
+    if (!c) return;
+    c.innerHTML = list.map((s, i) => `
+        <div class="dynamic-row">
+            <div class="dynamic-fields">
+                <input type="text" placeholder="Название фокального заклинания" value="${esc(s.name)}"
+                       onchange="spellsData.focus_spells[${i}].name=this.value" style="flex:2">
+                <input type="text" placeholder="Описание" value="${esc(s.description)}"
+                       onchange="spellsData.focus_spells[${i}].description=this.value" style="flex:2">
+            </div>
+            <button type="button" class="btn btn-sm btn-danger remove-btn" onclick="removeFocusSpell(${i})">✕</button>
+        </div>
+    `).join('');
+}
+
 // ── Сериализация перед отправкой ──────────────────────────────────────────
 
 function serializeAll() {
@@ -246,11 +279,13 @@ function serializeAll() {
             const v = +inp.value;
             if (v > 0) slots[inp.dataset.rank] = v;
         });
-        spellsData.is_caster       = true;
-        spellsData.tradition       = getVal('spell-tradition');
-        spellsData.casting_type    = getVal('spell-casting-type');
+        const fpMax = document.getElementById('focus-points-max');
+        spellsData.is_caster         = true;
+        spellsData.tradition         = getVal('spell-tradition');
+        spellsData.casting_type      = getVal('spell-casting-type');
         spellsData.spell_attack_prof = +getVal('spell-attack-prof');
-        spellsData.slots           = slots;
+        spellsData.slots             = slots;
+        spellsData.focus_points_max  = fpMax ? +fpMax.value : 0;
     } else {
         spellsData = {};
     }

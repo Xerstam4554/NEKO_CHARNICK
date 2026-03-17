@@ -1,5 +1,6 @@
 import os
 import json
+import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, flash
 from werkzeug.utils import secure_filename
 from models import db, Character, CLASSES, ABILITY_NAMES, TRADITIONS, PROFICIENCY_NAMES
@@ -18,6 +19,29 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+    # Миграция: добавляем новые колонки если их нет
+    db_path = os.path.join('instance', 'characters.db')
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    new_columns = [
+        ('lore',                'INTEGER DEFAULT 0'),
+        ('lore_topic',          'VARCHAR(100) DEFAULT ""'),
+        ('unarmored_prof',      'INTEGER DEFAULT 0'),
+        ('light_armor_prof',    'INTEGER DEFAULT 0'),
+        ('medium_armor_prof',   'INTEGER DEFAULT 0'),
+        ('heavy_armor_prof',    'INTEGER DEFAULT 0'),
+        ('unarmed_prof',        'INTEGER DEFAULT 0'),
+        ('simple_weapon_prof',  'INTEGER DEFAULT 0'),
+        ('martial_weapon_prof', 'INTEGER DEFAULT 0'),
+        ('advanced_weapon_prof','INTEGER DEFAULT 0'),
+    ]
+    for col_name, col_def in new_columns:
+        try:
+            cursor.execute(f'ALTER TABLE character ADD COLUMN {col_name} {col_def}')
+        except sqlite3.OperationalError:
+            pass  # Колонка уже существует
+    conn.commit()
+    conn.close()
 
 
 def allowed_file(filename):
@@ -155,10 +179,12 @@ def _fill_character(character, form, files):
         setattr(character, attr, int(form.get(attr, 0)))
 
     skills = ['acrobatics', 'arcana', 'athletics', 'crafting', 'deception',
-              'diplomacy', 'intimidation', 'medicine', 'nature', 'occultism',
+              'diplomacy', 'intimidation', 'lore', 'medicine', 'nature', 'occultism',
               'performance', 'religion', 'society', 'stealth', 'survival', 'thievery']
     for skill in skills:
         setattr(character, skill, int(form.get(skill, 0)))
+
+    character.lore_topic = form.get('lore_topic', '')
 
     character.fortitude_prof = int(form.get('fortitude_prof', 0))
     character.reflex_prof = int(form.get('reflex_prof', 0))
@@ -169,6 +195,18 @@ def _fill_character(character, form, files):
     character.current_hp = int(form.get('current_hp', 10))
     character.armor_class = int(form.get('armor_class', 10))
     character.speed = int(form.get('speed', 25))
+
+    # Владение доспехами
+    character.unarmored_prof = int(form.get('unarmored_prof', 0))
+    character.light_armor_prof = int(form.get('light_armor_prof', 0))
+    character.medium_armor_prof = int(form.get('medium_armor_prof', 0))
+    character.heavy_armor_prof = int(form.get('heavy_armor_prof', 0))
+
+    # Владение оружием
+    character.unarmed_prof = int(form.get('unarmed_prof', 0))
+    character.simple_weapon_prof = int(form.get('simple_weapon_prof', 0))
+    character.martial_weapon_prof = int(form.get('martial_weapon_prof', 0))
+    character.advanced_weapon_prof = int(form.get('advanced_weapon_prof', 0))
 
     character.class_dc_prof = int(form.get('class_dc_prof', 0))
     character.class_dc_ability = form.get('class_dc_ability', 'strength')
@@ -242,10 +280,11 @@ def _fill_demo(character, form):
         setattr(character, attr, int(form.get(attr, 0)))
 
     for sk in ['acrobatics', 'arcana', 'athletics', 'crafting', 'deception',
-               'diplomacy', 'intimidation', 'medicine', 'nature', 'occultism',
+               'diplomacy', 'intimidation', 'lore', 'medicine', 'nature', 'occultism',
                'performance', 'religion', 'society', 'stealth', 'survival', 'thievery']:
         setattr(character, sk, int(form.get(sk, 0)))
 
+    character.lore_topic = form.get('lore_topic', '')
     character.fortitude_prof = int(form.get('fortitude_prof', 0))
     character.reflex_prof = int(form.get('reflex_prof', 0))
     character.will_prof = int(form.get('will_prof', 0))
@@ -254,7 +293,6 @@ def _fill_demo(character, form):
     character.armor_class = int(form.get('armor_class', 10))
     character.speed = int(form.get('speed', 25))
 
-    # Черты из фиксированных полей формы
     feats = []
     for i in range(8):
         name = form.get(f'feat_name_{i}', '').strip()

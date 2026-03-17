@@ -31,10 +31,10 @@ ABILITY_NAMES = {
 }
 
 TRADITIONS = {
-    'arcane': 'Мистическая',
-    'divine': 'Божественная',
-    'occult': 'Оккультная',
-    'primal': 'Природная',
+    'arcane': 'Мистические',
+    'divine': 'Сакральные',
+    'occult': 'Оккультные',
+    'primal': 'Первобытные',
 }
 
 
@@ -58,12 +58,14 @@ class Character(db.Model):
 
     # Навыки (0=необучен, 1=обучен, 2=эксперт, 3=мастер, 4=легендарный)
     acrobatics = db.Column(db.Integer, default=0)
-    arcana = db.Column(db.Integer, default=0)
+    arcana = db.Column(db.Integer, default=0)        # Мистицизм
     athletics = db.Column(db.Integer, default=0)
     crafting = db.Column(db.Integer, default=0)
     deception = db.Column(db.Integer, default=0)
     diplomacy = db.Column(db.Integer, default=0)
     intimidation = db.Column(db.Integer, default=0)
+    lore = db.Column(db.Integer, default=0)          # Знание
+    lore_topic = db.Column(db.String(100), default='')
     medicine = db.Column(db.Integer, default=0)
     nature = db.Column(db.Integer, default=0)
     occultism = db.Column(db.Integer, default=0)
@@ -87,6 +89,18 @@ class Character(db.Model):
     current_hp = db.Column(db.Integer, default=10)
     armor_class = db.Column(db.Integer, default=10)
     speed = db.Column(db.Integer, default=25)
+
+    # Владение доспехами
+    unarmored_prof = db.Column(db.Integer, default=0)
+    light_armor_prof = db.Column(db.Integer, default=0)
+    medium_armor_prof = db.Column(db.Integer, default=0)
+    heavy_armor_prof = db.Column(db.Integer, default=0)
+
+    # Владение оружием
+    unarmed_prof = db.Column(db.Integer, default=0)
+    simple_weapon_prof = db.Column(db.Integer, default=0)
+    martial_weapon_prof = db.Column(db.Integer, default=0)
+    advanced_weapon_prof = db.Column(db.Integer, default=0)
 
     # Классовая сложность
     class_dc_prof = db.Column(db.Integer, default=0)
@@ -201,6 +215,8 @@ class Character(db.Model):
             'deception': self.deception,
             'diplomacy': self.diplomacy,
             'intimidation': self.intimidation,
+            'lore': self.lore,
+            'lore_topic': self.lore_topic,
             'medicine': self.medicine,
             'nature': self.nature,
             'occultism': self.occultism,
@@ -214,6 +230,14 @@ class Character(db.Model):
             'reflex_prof': self.reflex_prof,
             'will_prof': self.will_prof,
             'perception_prof': self.perception_prof,
+            'unarmored_prof': self.unarmored_prof,
+            'light_armor_prof': self.light_armor_prof,
+            'medium_armor_prof': self.medium_armor_prof,
+            'heavy_armor_prof': self.heavy_armor_prof,
+            'unarmed_prof': self.unarmed_prof,
+            'simple_weapon_prof': self.simple_weapon_prof,
+            'martial_weapon_prof': self.martial_weapon_prof,
+            'advanced_weapon_prof': self.advanced_weapon_prof,
             'max_hp': self.max_hp,
             'current_hp': self.current_hp,
             'armor_class': self.armor_class,
@@ -235,10 +259,12 @@ class Character(db.Model):
             'character_class', 'strength', 'dexterity', 'constitution',
             'intelligence', 'wisdom', 'charisma', 'acrobatics', 'arcana',
             'athletics', 'crafting', 'deception', 'diplomacy', 'intimidation',
-            'medicine', 'nature', 'occultism', 'performance', 'religion',
-            'society', 'stealth', 'survival', 'thievery', 'fortitude_prof',
-            'reflex_prof', 'will_prof', 'perception_prof', 'max_hp',
-            'current_hp', 'armor_class', 'speed', 'class_dc_prof',
+            'lore', 'lore_topic', 'medicine', 'nature', 'occultism', 'performance',
+            'religion', 'society', 'stealth', 'survival', 'thievery',
+            'fortitude_prof', 'reflex_prof', 'will_prof', 'perception_prof',
+            'unarmored_prof', 'light_armor_prof', 'medium_armor_prof', 'heavy_armor_prof',
+            'unarmed_prof', 'simple_weapon_prof', 'martial_weapon_prof', 'advanced_weapon_prof',
+            'max_hp', 'current_hp', 'armor_class', 'speed', 'class_dc_prof',
             'class_dc_ability', 'languages',
         ]
         for f in fields:

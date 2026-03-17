@@ -17,8 +17,8 @@
             <span class="badge">{{ character.character_class }}</span>
             {% endif %}
             <span class="badge badge-level">Уровень {{ character.level }}</span>
-            {% if character.ancestry %}<span class="badge badge-info">{{ character.ancestry }}</span>{% endif %}
-            {% if character.background %}<span class="badge badge-info">{{ character.background }}</span>{% endif %}
+            {% if character.ancestry %}<span class="badge badge-info">Народ: {{ character.ancestry }}</span>{% endif %}
+            {% if character.background %}<span class="badge badge-info">Происхождение: {{ character.background }}</span>{% endif %}
         </div>
         {% if character.experience is defined %}
         <div class="char-xp">🏅 Опыт: {{ character.experience }} XP</div>
@@ -94,7 +94,7 @@
 
 {# ── Испытания ────────────────────────────────────────────────────────── #}
 <div class="card">
-    <h3 class="card-title">🛡 Испытания</h3>
+    <h3 class="card-title">🎲 Испытания</h3>
     <div class="saves-grid">
         <div class="save-box">
             <div class="save-value">{{ fmt_mod(character.fortitude_bonus) }}</div>
@@ -133,6 +133,55 @@
 </div>
 {% endif %}
 
+{# ── Владение доспехами ───────────────────────────────────────────────── #}
+{% set has_armor = character.unarmored_prof > 0 or character.light_armor_prof > 0 or character.medium_armor_prof > 0 or character.heavy_armor_prof > 0 %}
+{% set has_weapon = character.unarmed_prof > 0 or character.simple_weapon_prof > 0 or character.martial_weapon_prof > 0 or character.advanced_weapon_prof > 0 %}
+{% if has_armor or has_weapon %}
+<div class="card">
+    <h3 class="card-title">🛡 Владение доспехами и оружием</h3>
+    {% if has_armor %}
+    <h4 class="sub-title">Доспехи</h4>
+    <div class="proficiency-grid">
+        {% set armor_list = [
+            ('unarmored_prof',   'Без брони'),
+            ('light_armor_prof', 'Лёгкий доспех'),
+            ('medium_armor_prof','Средний доспех'),
+            ('heavy_armor_prof', 'Тяжёлый доспех'),
+        ] %}
+        {% for field, label in armor_list %}
+        {% set prof = attribute(character, field) %}
+        {% if prof > 0 %}
+        <div class="prof-item">
+            <span class="prof-item-name">{{ label }}</span>
+            <span class="prof-badge prof-{{ prof }}">{{ character.get_proficiency_name(prof) }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if has_weapon %}
+    <h4 class="sub-title">Оружие</h4>
+    <div class="proficiency-grid">
+        {% set weapon_list = [
+            ('unarmed_prof',         'Безоружные атаки'),
+            ('simple_weapon_prof',   'Простое оружие'),
+            ('martial_weapon_prof',  'Воинское оружие'),
+            ('advanced_weapon_prof', 'Экзотическое оружие'),
+        ] %}
+        {% for field, label in weapon_list %}
+        {% set prof = attribute(character, field) %}
+        {% if prof > 0 %}
+        <div class="prof-item">
+            <span class="prof-item-name">{{ label }}</span>
+            <span class="prof-badge prof-{{ prof }}">{{ character.get_proficiency_name(prof) }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
 {# ── Навыки ───────────────────────────────────────────────────────────── #}
 <div class="card">
     <h3 class="card-title">📚 Навыки</h3>
@@ -142,22 +191,22 @@
         </thead>
         <tbody>
             {% set skills = [
-                ('acrobatics',   'Акробатика',   character.dexterity),
-                ('arcana',       'Аркана',        character.intelligence),
-                ('athletics',    'Атлетика',      character.strength),
-                ('crafting',     'Ремесло',       character.intelligence),
-                ('deception',    'Обман',         character.charisma),
-                ('diplomacy',    'Дипломатия',    character.charisma),
-                ('intimidation', 'Запугивание',   character.charisma),
-                ('medicine',     'Медицина',      character.wisdom),
-                ('nature',       'Природа',       character.wisdom),
-                ('occultism',    'Оккультизм',    character.intelligence),
-                ('performance',  'Выступление',   character.charisma),
-                ('religion',     'Религия',       character.wisdom),
-                ('society',      'Общество',      character.intelligence),
-                ('stealth',      'Скрытность',    character.dexterity),
-                ('survival',     'Выживание',     character.wisdom),
-                ('thievery',     'Воровство',     character.dexterity),
+                ('acrobatics',   'Акробатика',  character.dexterity),
+                ('athletics',    'Атлетика',    character.strength),
+                ('thievery',     'Воровство',   character.dexterity),
+                ('survival',     'Выживание',   character.wisdom),
+                ('diplomacy',    'Дипломатия',  character.charisma),
+                ('intimidation', 'Запугивание', character.charisma),
+                ('performance',  'Исполнение',  character.charisma),
+                ('medicine',     'Медицина',    character.wisdom),
+                ('arcana',       'Мистицизм',   character.intelligence),
+                ('deception',    'Обман',        character.charisma),
+                ('society',      'Общество',    character.intelligence),
+                ('occultism',    'Оккультизм',  character.intelligence),
+                ('nature',       'Природа',     character.wisdom),
+                ('religion',     'Религия',     character.wisdom),
+                ('crafting',     'Ремесло',     character.intelligence),
+                ('stealth',      'Скрытность',  character.dexterity),
             ] %}
             {% for skill_id, skill_name, mod in skills %}
             {% set prof = attribute(character, skill_id) %}
@@ -169,6 +218,15 @@
                 <td class="bonus-col">{{ fmt_mod(bonus) }}</td>
             </tr>
             {% endfor %}
+            {# Знание — особый навык #}
+            {% set lore_prof = character.lore %}
+            {% set lore_bonus = character.get_skill_bonus(lore_prof, character.intelligence) %}
+            <tr class="{% if lore_prof > 0 %}trained{% endif %}">
+                <td>Знание{% if character.lore_topic %} ({{ character.lore_topic }}){% endif %}</td>
+                <td class="mod-col">{{ fmt_mod(character.intelligence) }}</td>
+                <td><span class="prof-badge prof-{{ lore_prof }}">{{ character.get_proficiency_name(lore_prof) }}</span></td>
+                <td class="bonus-col">{{ fmt_mod(lore_bonus) }}</td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -177,7 +235,8 @@
 {% set feat_groups = [
     ('general',  '🌟 Общие черты'),
     ('skill',    '📖 Черты навыков'),
-    ('ancestry', '🌿 Черты происхождения'),
+    ('ancestry', '🌿 Черты народа'),
+    ('heritage', '🔮 Черты происхождения'),
     ('class',    '⚡ Классовые черты'),
 ] %}
 {% set all_feats = character.feats %}
@@ -225,7 +284,11 @@
     <h3 class="card-title">✨ Заклинания</h3>
     <div class="spell-meta">
         <span class="badge">{{ traditions.get(sp.get('tradition', ''), sp.get('tradition', '')) }}</span>
-        <span class="badge badge-info">{{ 'Подготовленные' if sp.get('casting_type') == 'prepared' else ('Спонтанные' if sp.get('casting_type') == 'spontaneous' else 'Фокусные') }}</span>
+        <span class="badge badge-info">
+            {% if sp.get('casting_type') == 'prepared' %}Подготовленные
+            {% elif sp.get('casting_type') == 'spontaneous' %}Спонтанные
+            {% else %}Подготовленные{% endif %}
+        </span>
         <span>Атака заклинаниями: <strong>{{ fmt_mod(character.class_spell_attack) }}</strong></span>
         <span>КС заклинаний: <strong>{{ character.class_dc }}</strong></span>
     </div>
@@ -267,6 +330,23 @@
         </div>
         {% endfor %}
     </div>
+    {% endif %}
+
+    {% if sp.get('focus_spells') or sp.get('focus_points_max', 0) > 0 %}
+    <h4 class="sub-title">🔮 Фокальные заклинания</h4>
+    <div class="focus-points-display">
+        <span>Фокальных очков: <strong>{{ sp.get('focus_points_max', 0) }}</strong></span>
+    </div>
+    {% if sp.get('focus_spells') %}
+    <div class="spell-list">
+        {% for s in sp.focus_spells %}
+        <div class="spell-item">
+            <strong>{{ s.name }}</strong>
+            {% if s.description %}<span class="spell-desc">— {{ s.description }}</span>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% endif %}
 </div>
 {% endif %}
