@@ -1,5 +1,7 @@
 import json
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 db = SQLAlchemy()
@@ -38,8 +40,29 @@ TRADITIONS = {
 }
 
 
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    characters = db.relationship('Character', backref='owner', lazy='dynamic')
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+
 class Character(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
     name = db.Column(db.String(100), nullable=False)
     level = db.Column(db.Integer, default=1)
     experience = db.Column(db.Integer, default=0)
@@ -48,7 +71,7 @@ class Character(db.Model):
     character_class = db.Column(db.String(50))
     avatar = db.Column(db.String(200))
 
-    # Модификаторы характеристик (напрямую, без значений)
+    # Модификаторы характеристик
     strength = db.Column(db.Integer, default=0)
     dexterity = db.Column(db.Integer, default=0)
     constitution = db.Column(db.Integer, default=0)
@@ -56,7 +79,7 @@ class Character(db.Model):
     wisdom = db.Column(db.Integer, default=0)
     charisma = db.Column(db.Integer, default=0)
 
-    # Навыки (0=необучен, 1=обучен, 2=эксперт, 3=мастер, 4=легендарный)
+    # Навыки
     acrobatics = db.Column(db.Integer, default=0)
     arcana = db.Column(db.Integer, default=0)        # Мистицизм
     athletics = db.Column(db.Integer, default=0)
@@ -64,7 +87,7 @@ class Character(db.Model):
     deception = db.Column(db.Integer, default=0)
     diplomacy = db.Column(db.Integer, default=0)
     intimidation = db.Column(db.Integer, default=0)
-    lore = db.Column(db.Integer, default=0)          # Знание
+    lore = db.Column(db.Integer, default=0)
     lore_topic = db.Column(db.String(100), default='')
     medicine = db.Column(db.Integer, default=0)
     nature = db.Column(db.Integer, default=0)
@@ -76,7 +99,7 @@ class Character(db.Model):
     survival = db.Column(db.Integer, default=0)
     thievery = db.Column(db.Integer, default=0)
 
-    # Испытания — уровень владения
+    # Испытания
     fortitude_prof = db.Column(db.Integer, default=0)
     reflex_prof = db.Column(db.Integer, default=0)
     will_prof = db.Column(db.Integer, default=0)
@@ -130,8 +153,6 @@ class Character(db.Model):
     def get_proficiency_name(self, value):
         return PROFICIENCY_NAMES.get(value, "Необучен")
 
-    # ── Испытания ────────────────────────────────────────────
-
     @property
     def fortitude_bonus(self):
         return self._prof_bonus(self.fortitude_prof) + self.constitution
@@ -144,13 +165,9 @@ class Character(db.Model):
     def will_bonus(self):
         return self._prof_bonus(self.will_prof) + self.wisdom
 
-    # ── Восприятие ───────────────────────────────────────────
-
     @property
     def perception_bonus(self):
         return self._prof_bonus(self.perception_prof) + self.wisdom
-
-    # ── Классовая сложность ──────────────────────────────────
 
     @property
     def class_dc(self):
@@ -161,8 +178,6 @@ class Character(db.Model):
     def class_spell_attack(self):
         mod = getattr(self, self.class_dc_ability, 0)
         return self._prof_bonus(self.class_dc_prof) + mod
-
-    # ── JSON-поля ────────────────────────────────────────────
 
     @property
     def feats(self):
@@ -191,8 +206,6 @@ class Character(db.Model):
             return json.loads(self.inventory_json or '[]')
         except Exception:
             return []
-
-    # ── Экспорт / импорт ────────────────────────────────────
 
     def to_dict(self):
         return {

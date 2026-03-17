@@ -1,55 +1,51 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h1>Регистрация</h1>
-<form action="" method="post">
-    {{ form.hidden_tag() }}
-    <p>
-        {{ form.email.label }}<br>
-        {{ form.email(class="form-control", type="email") }}<br>
-        {% for error in form.email.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.password.label }}<br>
-        {{ form.password(class="form-control", type="password") }}<br>
-        {% for error in form.password.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.password_again.label }}<br>
-        {{ form.password_again(class="form-control", type="password") }}<br>
-        {% for error in form.password_again.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.name.label }}<br>
-        {{ form.name(class="form-control") }}<br>
-        {% for error in form.name.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.about.label }}<br>
-        {{ form.about(class="form-control") }}<br>
-        {% for error in form.about.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-    {{message}}
-</form>
+
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h2 class="auth-title">📜 Регистрация</h2>
+        <p class="auth-sub">Создайте аккаунт, чтобы хранить своих персонажей</p>
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="auth-input", placeholder="Например: Torvin_Kladoviy") }}
+                {% for error in form.username.errors %}
+                <div class="field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="auth-input", placeholder="your@email.com") }}
+                {% for error in form.email.errors %}
+                <div class="field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="auth-input", placeholder="Минимум 6 символов") }}
+                {% for error in form.password.errors %}
+                <div class="field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                {{ form.password_again.label }}
+                {{ form.password_again(class="auth-input", placeholder="Повторите пароль") }}
+                {% for error in form.password_again.errors %}
+                <div class="field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-primary auth-btn">Зарегистрироваться</button>
+        </form>
+
+        <p class="auth-footer">Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a></p>
+    </div>
+</div>
+
 {% endblock %}

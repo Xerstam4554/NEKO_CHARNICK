@@ -601,6 +601,165 @@ input[type="number"] { -moz-appearance: textfield; }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
 
+/* ── Навигация: пользователь и кнопки auth ─────────────────────────────── */
+
+.nav-user {
+    color: var(--gold);
+    font-weight: 600;
+    font-size: .9rem;
+}
+
+.nav-logout {
+    opacity: .8;
+    font-size: .9rem;
+}
+
+.btn-nav-register {
+    background: var(--gold);
+    color: #1a1a1a !important;
+    padding: .3rem .8rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: .85rem;
+    transition: background .2s;
+}
+
+.btn-nav-register:hover { background: var(--gold-dark); }
+
+/* ── Auth-формы (вход / регистрация) ───────────────────────────────────── */
+
+.auth-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+}
+
+.auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2rem 2.5rem;
+    width: 100%;
+    max-width: 440px;
+}
+
+.auth-title {
+    font-size: 1.5rem;
+    color: var(--red);
+    margin-bottom: .3rem;
+    text-align: center;
+}
+
+.auth-sub {
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: .9rem;
+}
+
+.auth-input {
+    width: 100%;
+    padding: .55rem .8rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    background: var(--bg);
+    transition: border-color .2s;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+.auth-btn {
+    width: 100%;
+    margin-top: .5rem;
+    padding: .65rem;
+    font-size: 1rem;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 1.2rem;
+    color: var(--text-muted);
+    font-size: .9rem;
+}
+
+.auth-footer a { color: var(--gold-dark); font-weight: 600; }
+
+.field-error {
+    color: #c0392b;
+    font-size: .82rem;
+    margin-top: .25rem;
+}
+
+/* ── Лендинг для незарегистрированных ─────────────────────────────────── */
+
+.landing { padding: 2rem 0; }
+
+.landing-hero {
+    text-align: center;
+    padding: 3rem 1rem 2.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+}
+
+.landing-icon {
+    font-size: 3.5rem;
+    margin-bottom: .5rem;
+}
+
+.landing-hero h1 {
+    font-size: 2rem;
+    color: var(--red);
+    margin-bottom: .75rem;
+}
+
+.landing-hero p {
+    color: var(--text-muted);
+    max-width: 480px;
+    margin: 0 auto 1.5rem;
+}
+
+.landing-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-lg { padding: .7rem 2rem; font-size: 1.05rem; }
+
+.landing-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.2rem;
+}
+
+.feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.2rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.feature-icon { font-size: 2rem; margin-bottom: .5rem; }
+
+.feature-card h3 {
+    color: var(--red);
+    margin-bottom: .5rem;
+    font-size: 1rem;
+}
+
+.feature-card p { color: var(--text-muted); font-size: .9rem; }
+
 /* ── Навык Знание ──────────────────────────────────────────────────────── */
 
 .skill-row-lore {

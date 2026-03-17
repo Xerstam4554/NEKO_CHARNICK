@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h2 class="auth-title">⚔️ Вход</h2>
+        <p class="auth-sub">Войдите, чтобы управлять своими персонажами</p>
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="auth-input", placeholder="your@email.com") }}
+                {% for error in form.email.errors %}
+                <div class="field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="auth-input", placeholder="Пароль") }}
+                {% for error in form.password.errors %}
+                <div class="field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-group check-label">
+                {{ form.remember_me() }}
+                {{ form.remember_me.label }}
+            </div>
+
+            <button type="submit" class="btn btn-primary auth-btn">Войти</button>
+        </form>
+
+        <p class="auth-footer">Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрироваться</a></p>
+    </div>
+</div>
+
+{% endblock %}

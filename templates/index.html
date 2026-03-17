@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if current_user.is_authenticated %}
+
 <div class="page-header">
     <h2>Мои персонажи</h2>
     <a href="{{ url_for('create_character') }}" class="btn btn-primary">➕ Создать персонажа</a>
@@ -47,5 +49,39 @@
     <p>Персонажей пока нет. Создайте первого героя!</p>
     <a href="{{ url_for('create_character') }}" class="btn btn-primary">Создать персонажа</a>
 </div>
+{% endif %}
+
+{% else %}
+
+{# ── Лендинг для незарегистрированных ──────────────────────────────────── #}
+<div class="landing">
+    <div class="landing-hero">
+        <div class="landing-icon">⚔️</div>
+        <h1>PF2e Лист персонажа</h1>
+        <p>Создавай и управляй листами персонажей Pathfinder 2e Remastered на русском языке.</p>
+        <div class="landing-actions">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Создать аккаунт</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg">Войти</a>
+        </div>
+    </div>
+    <div class="landing-features">
+        <div class="feature-card">
+            <div class="feature-icon">📋</div>
+            <h3>Полный лист персонажа</h3>
+            <p>Характеристики, навыки, черты, заклинания, инвентарь — всё по правилам PF2e Remastered.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💾</div>
+            <h3>Экспорт и импорт</h3>
+            <p>Сохраняй персонажей в JSON и загружай обратно в любой момент.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">❤️</div>
+            <h3>Трекер здоровья</h3>
+            <p>Управляй ХП прямо во время игровой сессии одним нажатием.</p>
+        </div>
+    </div>
+</div>
+
 {% endif %}
 {% endblock %}
