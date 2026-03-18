@@ -221,7 +221,7 @@ function renderCantrips(list) {
     c.innerHTML = list.map((s, i) => `
         <div class="dynamic-row">
             <div class="dynamic-fields">
-                <input type="text" placeholder="Название заговора" value="${esc(s.name)}"
+                <input type="text" placeholder="Название фокуса" value="${esc(s.name)}"
                        onchange="spellsData.cantrips[${i}].name=this.value">
                 <input type="text" placeholder="Описание" value="${esc(s.description)}"
                        onchange="spellsData.cantrips[${i}].description=this.value" style="flex:2">
