@@ -1,6 +1,5 @@
 import os
 import json
-import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
@@ -8,11 +7,17 @@ from models import db, User, Character, CLASSES, ABILITY_NAMES, TRADITIONS, PROF
 import io
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///characters.db'
+
+# PostgreSQL (Replit) или SQLite для локального запуска
+_db_url = os.environ.get('DATABASE_URL', 'sqlite:///characters.db')
+# SQLAlchemy требует postgresql://, а не postgres://
+if _db_url.startswith('postgres://'):
+    _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024
-app.secret_key = 'pf2-secret-key-2024'
+app.secret_key = os.environ.get('SECRET_KEY', 'pf2-secret-key-2024')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
@@ -29,30 +34,6 @@ def load_user(user_id):
 
 with app.app_context():
     db.create_all()
-    # Миграция: добавляем новые колонки если их нет
-    db_path = os.path.join('instance', 'characters.db')
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    new_columns = [
-        ('character', 'lore',                'INTEGER DEFAULT 0'),
-        ('character', 'lore_topic',          'VARCHAR(100) DEFAULT ""'),
-        ('character', 'unarmored_prof',      'INTEGER DEFAULT 0'),
-        ('character', 'light_armor_prof',    'INTEGER DEFAULT 0'),
-        ('character', 'medium_armor_prof',   'INTEGER DEFAULT 0'),
-        ('character', 'heavy_armor_prof',    'INTEGER DEFAULT 0'),
-        ('character', 'unarmed_prof',        'INTEGER DEFAULT 0'),
-        ('character', 'simple_weapon_prof',  'INTEGER DEFAULT 0'),
-        ('character', 'martial_weapon_prof', 'INTEGER DEFAULT 0'),
-        ('character', 'advanced_weapon_prof','INTEGER DEFAULT 0'),
-        ('character', 'user_id',             'INTEGER'),
-    ]
-    for table, col_name, col_def in new_columns:
-        try:
-            cursor.execute(f'ALTER TABLE {table} ADD COLUMN {col_name} {col_def}')
-        except sqlite3.OperationalError:
-            pass
-    conn.commit()
-    conn.close()
 
 
 def allowed_file(filename):
